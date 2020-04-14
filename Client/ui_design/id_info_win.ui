@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>id_info_win</class>
+ <widget class="QDialog" name="id_info_win">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>516</width>
+    <height>277</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QPushButton" name="b_login">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>210</y>
+     <width>91</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);//背景色（也可以设置图片）
+                   border-style:outset;                  //边框样式（inset/outset）
+                   border-width:4px;                     //边框宽度像素
+                   border-radius:10px;                  //边框圆角半径像素
+                   border-color:rgba(255,255,255,30);    //边框颜色
+                   font:bold 10px;                      //字体，字体大小
+                   color:rgba(0,0,0,100);                //字体颜色
+                   padding:6px;                         //填衬
+                   }
+                   //鼠标按下样式
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   //鼠标悬停样式
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+   </property>
+   <property name="text">
+    <string>进入系统</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="b_wrong">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>210</y>
+     <width>91</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);//背景色（也可以设置图片）
+                   border-style:outset;                  //边框样式（inset/outset）
+                   border-width:4px;                     //边框宽度像素
+                   border-radius:10px;                  //边框圆角半径像素
+                   border-color:rgba(255,255,255,30);    //边框颜色
+                   font:bold 10px;                      //字体，字体大小
+                   color:rgba(0,0,0,100);                //字体颜色
+                   padding:6px;                         //填衬
+                   }
+                   //鼠标按下样式
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   //鼠标悬停样式
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+   </property>
+   <property name="text">
+    <string>有误重试</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="b_in">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>70</y>
+     <width>91</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);//背景色（也可以设置图片）
+                   border-style:outset;                  //边框样式（inset/outset）
+                   border-width:4px;                     //边框宽度像素
+                   border-radius:10px;                  //边框圆角半径像素
+                   border-color:rgba(255,255,255,30);    //边框颜色
+                   font:bold 10px;                      //字体，字体大小
+                   color:rgba(0,0,0,100);                //字体颜色
+                   padding:6px;                         //填衬
+                   }
+                   //鼠标按下样式
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   //鼠标悬停样式
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+   </property>
+   <property name="text">
+    <string>上岗</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="l_name">
+   <property name="geometry">
+    <rect>
+     <x>76</x>
+     <y>68</y>
+     <width>66</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>姓名</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="user_type">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>150</y>
+     <width>223</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>xxxxx</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="user_name">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>68</y>
+     <width>223</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>xxxxx</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="user_id">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>109</y>
+     <width>223</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>xxxxx</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="l_id">
+   <property name="geometry">
+    <rect>
+     <x>76</x>
+     <y>109</y>
+     <width>66</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>工号/学号</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="l_type">
+   <property name="geometry">
+    <rect>
+     <x>76</x>
+     <y>150</y>
+     <width>66</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>用户类型</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="b_off">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>130</y>
+     <width>91</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);//背景色（也可以设置图片）
+                   border-style:outset;                  //边框样式（inset/outset）
+                   border-width:4px;                     //边框宽度像素
+                   border-radius:10px;                  //边框圆角半径像素
+                   border-color:rgba(255,255,255,30);    //边框颜色
+                   font:bold 10px;                      //字体，字体大小
+                   color:rgba(0,0,0,100);                //字体颜色
+                   padding:6px;                         //填衬
+                   }
+                   //鼠标按下样式
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   //鼠标悬停样式
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+   </property>
+   <property name="text">
+    <string>离岗</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

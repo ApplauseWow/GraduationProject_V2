@@ -1,0 +1,49 @@
+// [python quickstart](https://grpc.io/docs/quickstart/python.html#run-a-grpc-application)
+// python -m grpc_tools.protoc --python_out=. --grpc_python_out=. -I. correspondence.proto
+
+// backend.proto
+syntax = "proto3";
+
+service Backend {
+    // 测试接口
+    rpc SayHello(HelloRequest) returns (HelloResponse) {}
+    rpc SayHelloAgain(HelloRequest) returns (HelloResponse) {}
+
+    // 正式接口
+    // ->数据交互相关接口
+    // ->->共用接口
+    rpc GetRecordsCount(RequestStruct) returns (ResponseStruct) {} //获取记录条数
+    // ->->公告相关接口
+    rpc GetAllNotes(RequestStruct) returns (ResponseStruct) {} // 教师学生共用，通过角色类型划分权限
+    rpc InsertANote(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc ModifyTheNote(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc VoidTheNote(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    // ->->用户相关接口
+    rpc GetAllUsers(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc DeleteTheUser(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc InsertAUser(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc ModifyTheUser(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc GetTheUser(RequestStruct) returns (ResponseStruct) {} // 学生专用
+
+
+}
+
+
+// 为了避免麻烦，利用pickle模块在数据传输前和传输后分别序列化和反序列化为字节流
+// 测试数据结构
+message HelloRequest {
+    bytes para = 1;
+}
+
+message HelloResponse {
+    bytes result = 1;
+}
+
+// 正式数据结构
+message RequestStruct {
+    bytes para = 1;
+}
+
+message ResponseStruct {
+    bytes result = 1;
+}

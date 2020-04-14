@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>882</width>
+    <height>695</height>
+   </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>882</width>
+    <height>695</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);//背景色（也可以设置图片）
+                   border-style:outset;                  //边框样式（inset/outset）
+                   border-width:4px;                     //边框宽度像素
+                   border-radius:10px;                  //边框圆角半径像素
+                   border-color:rgba(255,255,255,30);    //边框颜色
+                   font:bold 10px;                      //字体，字体大小
+                   color:rgba(0,0,0,100);                //字体颜色
+                   padding:6px;                         //填衬
+                   }
+                   //鼠标按下样式
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   //鼠标悬停样式
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+   </property>
+   <widget class="QPushButton" name="face_login">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>440</y>
+      <width>199</width>
+      <height>46</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);/
+                   border-style:outset;                  
+                   border-width:4px;                     
+                   border-radius:10px;                
+                   border-color:rgba(255,255,255,30);   
+                   font:bold 10px;                    
+                   color:rgba(0,0,0,100);                
+                   padding:6px;                       
+                   }
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+    </property>
+    <property name="text">
+     <string>登录系统</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="att_rec">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>385</y>
+      <width>199</width>
+      <height>46</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);/
+                   border-style:outset;                  
+                   border-width:4px;                     
+                   border-radius:10px;                
+                   border-color:rgba(255,255,255,30);   
+                   font:bold 10px;                    
+                   color:rgba(0,0,0,100);                
+                   padding:6px;                       
+                   }
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+    </property>
+    <property name="text">
+     <string>考勤打卡</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="face_reg">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>275</y>
+      <width>199</width>
+      <height>46</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);/
+                   border-style:outset;                  
+                   border-width:4px;                     
+                   border-radius:10px;                
+                   border-color:rgba(255,255,255,30);   
+                   font:bold 10px;                    
+                   color:rgba(0,0,0,100);                
+                   padding:6px;                       
+                   }
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+    </property>
+    <property name="text">
+     <string>人脸注册</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="face_rec">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>330</y>
+      <width>199</width>
+      <height>46</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);/
+                   border-style:outset;                  
+                   border-width:4px;                     
+                   border-radius:10px;                
+                   border-color:rgba(255,255,255,30);   
+                   font:bold 10px;                    
+                   color:rgba(0,0,0,100);                
+                   padding:6px;                       
+                   }
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+    </property>
+    <property name="text">
+     <string>人脸识别</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

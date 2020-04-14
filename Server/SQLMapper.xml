@@ -1,0 +1,68 @@
+<sql>
+    <table name="user_info">
+        <insert>INSERT INTO `user_info` (`user_id`, `major`, `grade`, `_class`, `user_type`, `tel`, `email`) VALUES (%(user_id)s, %(major)s, %(grade)s, %(_class)s, %(user_type)s, %(tel)s, %(email)s);</insert>
+        <delete>DELETE FROM `user_info` WHERE `user_id`=%(user_id)s;</delete>
+        <update>UPDATE `user_info` SET `major`=%(major)s, `grade`=%(grade)s, `_class`=%(_class)s, `user_type`=%(user_type)s, `tel`=%(tel)s, `email`=%(email)s WHERE `user_id`=%(user_id)s;</update>
+        <limited_search>SELECT * FROM `user_info` WHERE `user_id`=%(user_id)s;</limited_search>
+    </table>
+    <table name="achievement_info">
+        <insert>INSERT INTO `achievement_info` ( `user_id`, `ach_name`, `ach_type`) VALUES (%(user_id)s, %(ach_name)s, %(ach_type)s);</insert>
+        <delete>DELETE FROM `achievement_info` WHERE `ach_id`=%(ach_id)s;</delete>
+    </table>
+    <table name="attendance_record">
+         <insert>INSERT INTO `attendance_record` (`user_id`, `date_time`, `record_type`) VALUES (%(user_id)s, %(date_time)s, %(record_type)s);</insert>
+         <delete>DELETE FROM `attendance_record` WHERE `record_id`=%(record_id)s;</delete>
+    </table>
+    <table name="competition_info">
+        <insert>INSERT INTO `competition_info` (`sponsor`, `comp_name`, `enroll_date`, `grade`, `comp_type`, `description`, `comp_status`, `is_awarded`) VALUES (%(sponsor)s, %(comp_name)s, %(enroll_date)s, %(grade)s, %(comp_type)s, %(description)s, %(comp_status)s, %(is_awarded)s);</insert>
+        <delete>DELETE FROM `competition_info` WHERE `comp_id`=%(comp_id)s;</delete>
+    </table>
+    <table name="competition_member">
+        <insert>INSERT INTO `competition_member` (`user_id`, `comp_id`, `user_type`) VALUES (%(user_id)s, %(comp_id)s, %(user_type)s);</insert>
+        <delete>DELETE FROM `competition_member` WHERE `user_id`=%(user_id)s and`comp_id`=%(comp_id)s;</delete>
+    </table>
+    <table name="facility_info">
+        <insert>INSERT INTO `facility_info` (`register_date`, `description`) VALUES (%(register_date)s, %(description)s);</insert>
+        <delete>DELETE FROM `facility_info` WHERE `facility_id`=%(facility_id)s;</delete>
+    </table>
+    <table name="in_charge_of_facility">
+        <insert>INSERT INTO `in_charge_of_facility` (`facility_id`, `user_id`) VALUES (%(facility_id)s, %(user_id)s);</insert>
+        <delete>DELETE FROM `in_charge_of_facility` WHERE `facility_id`=%(facility_id)s;</delete>
+    </table>
+    <table name="group_info">
+        <insert>INSERT INTO `group_info` (`group_name`, `description`) VALUES (%(group_name)s, %(description)s);</insert>
+        <delete>DELETE FROM `group_info` WHERE `group_id`=%(group_id)s;</delete>
+    </table>
+    <table name="group_member">
+        <insert>INSERT INTO `group_member` (`user_id`, `group_id`, `member_type`) VALUES (%(user_id)s, %(group_id)s, %(member_type)s);</insert>
+        <delete>DELETE FROM `group_member` WHERE `user_id`=%(user_id)s and`group_id`=%(group_id)s;</delete>
+    </table>
+    <table name="leave_permit_info">
+        <insert>INSERT INTO `leave_permit_info` (`req_date`, `user_id`, `req_type`, `req_detail`, `is_permited`) VALUES (%(req_date)s, %(user_id)s, %(req_type)s, %(req_detail)s, %(is_permited)s);</insert>
+        <delete>DELETE FROM `leave_permit_info` WHERE `lp_id`=%(lp_id)s;</delete>
+    </table>
+    <table name="note_info">
+        <insert>INSERT INTO `note_info` (`title`, `detail`, `pub_date`, `is_valid`) VALUES (%(title)s, %(detail)s, %(pub_date)s, %(is_valid)s);</insert>
+        <delete>DELETE FROM `note_info` WHERE `note_id`=%(note_id)s;</delete>
+        <update>UPDATE `note_info` SET `title`=%(title)s, `detail`=%(detail)s, `pub_date`=%(pub_date)s WHERE `note_id`=%(note_id)s;</update>
+        <limited_count>SELECT COUNT(*) FROM `note_info` WHERE `is_valid`=%(is_valid)s</limited_count>
+        <void>UPDATE `note_info` SET `is_valid`=%(void)s WHERE `note_id`=%(note_id)s;</void>>
+        <limited_search>SELECT * FROM `note_info` WHERE `is_valid`=%(is_valid)s limit %(start)s, %(num)s;</limited_search>
+    </table>
+    <table name="project_info">
+        <insert>INSERT INTO `project_info` (`pj_name`, `description`, `pj_start_time`, `is_done`) VALUES (%(pj_name)s, %(description)s, %(pj_start_time)s, %(is_done)s);</insert>
+        <delete>DELETE FROM `project_info` WHERE `pj_id`=%(pj_id)s;</delete>
+    </table>
+    <table name="seat_arrangement">
+        <insert>INSERT INTO `seat_arrangement` (`user_id`, `seat_id`, `is_leader`) VALUES (%(user_id)s, %(seat_id)s, %(is_leader)s);</insert>
+        <delete>DELETE FROM `seat_arrangement` WHERE `arrangement_id`=%(arrangement_id)s;</delete>
+    </table>
+    <table name="seat_info">
+        <insert>INSERT INTO `seat_info` (`row`, `col`) VALUES (%(row)s, %(col)s);</insert>
+        <delete>DELETE FROM `seat_info` WHERE `seat_id`=%(seat_id)s;</delete>
+    </table>
+    <table name="self_task">
+        <insert>INSERT INTO `self_task` (`pj_id`, `user_id`, `arrangement_date`, `is_done`, `task_title`, `description`) VALUES (%(pj_id)s, %(user_id)s, %(arrangement_date)s, %(is_done)s, %(task_title)s, %(description)s);</insert>
+        <delete>DELETE FROM `self_task` WHERE `task_id`=%(task_id)s;</delete>
+    </table>
+</sql>
