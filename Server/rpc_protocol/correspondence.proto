@@ -24,6 +24,7 @@ service Backend {
     rpc InsertAUser(RequestStruct) returns (ResponseStruct) {} // 教师专用
     rpc ModifyTheUser(RequestStruct) returns (ResponseStruct) {} // 教师专用
     rpc GetTheUser(RequestStruct) returns (ResponseStruct) {} // 学生专用
+    // ->->考勤统计相关接口
 
 
 }
