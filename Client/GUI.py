@@ -763,6 +763,8 @@ class Management(ManagementWindow):
                 if not data:  # 插入
                     self.bt_update.hide()
                     self.d_user_id.setEnabled(True)
+                    self.timestamp.hide()
+                    self.hour_everyday.hide()
                 else:  # 查看或者修改
                     self.bt_insert.hide()
                     self.d_user_id.setText(data['user_id'])
@@ -773,11 +775,20 @@ class Management(ManagementWindow):
                     self.d_tel.setText(data['tel'])
                     self.d_email.setText(data['email'])
                     self.isTeacher(None)
+                    self.initCharts()
 
                 self.d_user_type.activated.connect(self.isTeacher)
                 self.bt_insert.clicked.connect(self.CreateNewUser)
                 self.bt_update.clicked.connect(self.ModifyUser)
                 self.bt_close.clicked.connect(self.close)
+
+            def initCharts(self):
+                """
+                初始化考勤统计图表
+                :return:
+                """
+
+                pass # 待写！！！！！
 
             def CreateNewUser(self):
                 """

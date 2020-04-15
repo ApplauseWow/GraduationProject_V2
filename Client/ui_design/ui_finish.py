@@ -593,12 +593,12 @@ class StuffDetail(QDialog):
         def setWeb(obj):
             obj.page().mainFrame().setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)  # 取消滚动条
             obj.page().mainFrame().setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
-            obj.setFixedSize(500, 500)
+            obj.setFixedSize(300, 300)
 
         self.timestamp = QWebView()
-        self.timestamp_url = QUrl("file:///D:/Bingo/AI_WorkPlace/GraduationProject/GraduationProject/Client/test/self_aweek_workhour_perday.html")
+        self.timestamp_url = QUrl()
         self.hour_everyday = QWebView()
-        self.hour_everyday_url = QUrl("file:///D:/Bingo/AI_WorkPlace/GraduationProject/GraduationProject/Client/test/self_aweek_workhour_perday.html")
+        self.hour_everyday_url = QUrl()
         setWeb(self.timestamp)
         setWeb(self.hour_everyday)
         self.timestamp.load(self.timestamp_url)
@@ -683,7 +683,7 @@ class StuffDetail(QDialog):
             
         ''')
 
-        self.setGeometry(500, 300, 800, 400)
+        self.setGeometry(700, 300, 700, 400)
         self.setAttribute(Qt.WA_TranslucentBackground)  # 窗体背景透明
         self.setWindowFlags(Qt.FramelessWindowHint)  # 影藏窗口
 
