@@ -1,9 +1,10 @@
 # -*-coding:utf-8-*-
 from PyQt5.QtGui import QFont, QPixmap
+from PyQt5.QtWebKitWidgets import QWebView
 from PyQt5.QtWidgets import QWidget, QMainWindow, QApplication, QDialog, QLabel, QLCDNumber, QGridLayout, QPushButton, \
     QLineEdit, QVBoxLayout, QHBoxLayout, QHeaderView, QMessageBox, QTableWidget, QAbstractItemView, QTableWidgetItem, \
     QFrame, QStackedLayout, QTextEdit, QComboBox
-from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QEvent
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer, QEvent, QUrl
 import time
 import re
 
@@ -589,6 +590,20 @@ class StuffDetail(QDialog):
         self.bt_update = QPushButton(u"修改")
         self.bt_insert = QPushButton(u"添加")
 
+        def setWeb(obj):
+            obj.page().mainFrame().setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)  # 取消滚动条
+            obj.page().mainFrame().setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
+            obj.setFixedSize(500, 500)
+
+        self.timestamp = QWebView()
+        self.timestamp_url = QUrl("file:///D:/Bingo/AI_WorkPlace/GraduationProject/GraduationProject/Client/test/self_aweek_workhour_perday.html")
+        self.hour_everyday = QWebView()
+        self.hour_everyday_url = QUrl("file:///D:/Bingo/AI_WorkPlace/GraduationProject/GraduationProject/Client/test/self_aweek_workhour_perday.html")
+        setWeb(self.timestamp)
+        setWeb(self.hour_everyday)
+        self.timestamp.load(self.timestamp_url)
+        self.hour_everyday.load(self.hour_everyday_url)
+
         self.user_layout.addWidget(self.l_user_id, 0, 0, 1, 1)
         self.user_layout.addWidget(self.d_user_id, 0, 1, 1, 3)
         self.user_layout.addWidget(self.l_user_type, 1, 0, 1, 1)
@@ -604,6 +619,8 @@ class StuffDetail(QDialog):
         self.user_layout.addWidget(self.bt_close, 5, 3, 1, 1)
         self.user_layout.addWidget(self.bt_insert, 5, 2, 1, 1)
         self.user_layout.addWidget(self.bt_update, 5, 1, 1, 1)
+        self.user_layout.addWidget(self.timestamp, 6, 0, 6, 6)
+        self.user_layout.addWidget(self.hour_everyday, 6, 6, 6, 6)
         self.setLayout(self.user_layout)
         self.setUpCSS()
 
@@ -666,7 +683,7 @@ class StuffDetail(QDialog):
             
         ''')
 
-        self.resize(400, 300)
+        self.setGeometry(500, 300, 800, 400)
         self.setAttribute(Qt.WA_TranslucentBackground)  # 窗体背景透明
         self.setWindowFlags(Qt.FramelessWindowHint)  # 影藏窗口
 

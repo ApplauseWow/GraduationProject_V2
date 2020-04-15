@@ -1001,7 +1001,7 @@ class Management(ManagementWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win_ = Management(201610414206, 0)
+    win_ = Management(201610414206, 1)
     win_.show()
     # win1 = SysHome()
     # win2 = MyInfo()

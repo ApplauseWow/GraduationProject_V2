@@ -8,13 +8,15 @@ from TypesEnum import *
 
 
 if __name__ == '__main__':
-    # from PyQt5.QtWebKitWidgets import QWebView
-    # from PyQt5 import QtCore
+    from PyQt5.QtWebKitWidgets import QWebView
+    from PyQt5 import QtCore
+    from PyQt5.QtWidgets import QDialog, QGridLayout
+
     with open('../ui_design/js/aweek_every_hour_clockIn.js', 'r') as f:
         js = f.read()
     with open('../ui_design/js/html_model.html', 'r') as f:
         html = f.read()
-    chart = "".join([html,
+    chart = "".join([html.format(300, 300),
                      # "<script type='text/javascript' src='echarts-liquidfill.js'></script>",
                      "<script>",
                      "var data = {};".format([[0, 1, 5], [5, 3, 9]]),
@@ -26,6 +28,7 @@ if __name__ == '__main__':
                      "</script></body></html>"])
     with open('html.html', 'w') as f:
         f.write(chart)
+
     # kwargs = dict(
     #     name='柱形图',
     #     x_axis=['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子'],
@@ -34,17 +37,28 @@ if __name__ == '__main__':
     # )
     # bar.add(**kwargs)
     # bar.render()
-    #
-    # app = QApplication(sys.argv)
-    # win_ = QWebView()
 
-    # win_.load(QtCore.QUrl('file:///D:/Bingo/AI_WorkPlace/GraduationProject/GraduationProject/Client/test/render.html'))
+    # app = QApplication(sys.argv)
+    # lay = QGridLayout()
+    # w = QDialog()
+    # win_ = QWebView()
+    # win_.load(QtCore.QUrl('http://www.baidu.com'))
     # win_.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # 影藏窗口
     # win_.page().mainFrame().setScrollBarPolicy(QtCore.Qt.Horizontal, QtCore.Qt.ScrollBarAlwaysOff)  # 取消滚动条
     # win_.page().mainFrame().setScrollBarPolicy(QtCore.Qt.Vertical, QtCore.Qt.ScrollBarAlwaysOff)
     # win_.resize(300, 400)
-    # win_.show()
+    # win_2 = QWebView()
+    # win_2.load(QtCore.QUrl('http://www.baidu.com'))
+    # win_2.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # 影藏窗口
+    # win_2.page().mainFrame().setScrollBarPolicy(QtCore.Qt.Horizontal, QtCore.Qt.ScrollBarAlwaysOff)  # 取消滚动条
+    # win_2.page().mainFrame().setScrollBarPolicy(QtCore.Qt.Vertical, QtCore.Qt.ScrollBarAlwaysOff)
+    # win_2.resize(300, 400)
+    # lay.addWidget(win_, 0, 0, 5, 5)
+    # lay.addWidget(win_2, 0, 5, 5, 5)
+    # w.setLayout(lay)
+    # w.show()
     # sys.exit(app.exec_())
+
     # from cv2.cv2 import imread
     # import dlib
     # from face_recognition import face_locations, face_encodings
