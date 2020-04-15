@@ -895,7 +895,7 @@ class Management(ManagementWindow):
         """
         继承MyInfo封装业务逻辑
         数据需求：个人用户信息
-        描述：【学生】一组标签信息
+        描述：【学生】一组信息
         """
 
         update_signal = pyqtSignal()  # 更新用户信息信号
