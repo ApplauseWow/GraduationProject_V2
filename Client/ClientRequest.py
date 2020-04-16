@@ -39,7 +39,7 @@ class CR(object):
         获取总记录条数
         :param obj: 对象 eg: 'note', 'project' 'user' ...
         :param _type: 是否有分类 eg: NoteStatus.Valid.value | ... 可能是一组{用字典对应}
-        :return: 条数
+        :return: res['result'] -> 条数
         """
 
         try:
@@ -211,7 +211,7 @@ class CR(object):
         """
         获取个人用户信息
         :param data:数据
-        :return: res['operation'] 即ClientRequest.Sucess | ...
+        :return: res['result'][0] -> {个人信息字典}
         """
 
         try:
@@ -221,6 +221,43 @@ class CR(object):
                 raise Exception('fail to modify!')
             elif res['operation'] == ClientRequest.Success:
                 return res['result'][0]
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('fail to request!')
+
+    # 考勤相关
+    def GetWorkHourEverYDayRequest(self, data):
+        """
+        获取本周每日工作时长
+        :param data:数据
+        :return: res['result'] -> [每日工作时长列表]
+        """
+
+        try:
+            response = self.stub.GetWorkHourEverYDay(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            if res['operation'] == ClientRequest.Failure:
+                raise Exception('fail to get work hour!')
+            elif res['operation'] == ClientRequest.Success:
+                return res['result']
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('fail to request!')
+
+    def GetClockInOrOutTimeStampRequest(self, data):
+        """
+        获取本周上岗/离岗时间戳
+        :param data:数据
+        :return: res['result'] -> [[星期,小时,坐标点大小(定值)]：图表坐标点,...]
+        """
+
+        try:
+            response = self.stub.GetClockInOrOutTimeStamp(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            if res['operation'] == ClientRequest.Failure:
+                raise Exception('fail to get timestamp!')
+            elif res['operation'] == ClientRequest.Success:
+                return res['result']
         except Exception as e:  # 界面捕捉异常并弹出警告窗口
             print(e)
             raise Exception('fail to request!')

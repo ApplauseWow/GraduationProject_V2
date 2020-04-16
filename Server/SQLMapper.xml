@@ -12,6 +12,20 @@
     <table name="attendance_record">
          <insert>INSERT INTO `attendance_record` (`user_id`, `date_time`, `record_type`) VALUES (%(user_id)s, %(date_time)s, %(record_type)s);</insert>
          <delete>DELETE FROM `attendance_record` WHERE `record_id`=%(record_id)s;</delete>
+         <!--本周每天的考勤记录(星期,考勤类型,时间)-->
+         <self_week_search>
+             select weekday(date_time) as day, record_type, date_time
+             from attendance_record
+             where user_id = %(user_id)s and date_time between current_date()-weekday(current_date()) and current_date() + 7 - weekday(current_date())
+             ORDER BY date_time asc;
+         </self_week_search>
+        <!--注意：PS!sql中若%需要当做字符处理需要再加一个% 如下-->
+         <self_timestamp_search>
+            select weekday(date_time), date_format(date_time,'%%H'), 5
+            from `attendance_record`
+            where `user_id` = %(user_id)s and `record_type` = %(record_type)s and date_time between current_date()-weekday(current_date()) and current_date() + 7 - weekday(current_date())
+            ORDER BY date_time asc;
+         </self_timestamp_search>
     </table>
     <table name="competition_info">
         <insert>INSERT INTO `competition_info` (`sponsor`, `comp_name`, `enroll_date`, `grade`, `comp_type`, `description`, `comp_status`, `is_awarded`) VALUES (%(sponsor)s, %(comp_name)s, %(enroll_date)s, %(grade)s, %(comp_type)s, %(description)s, %(comp_status)s, %(is_awarded)s);</insert>

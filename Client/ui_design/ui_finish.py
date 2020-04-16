@@ -593,7 +593,7 @@ class StuffDetail(QDialog):
         def setWeb(obj):
             obj.page().mainFrame().setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)  # 取消滚动条
             obj.page().mainFrame().setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
-            obj.setFixedSize(300, 300)
+            obj.setFixedSize(400, 400)
 
         self.timestamp = QWebView()
         self.timestamp_url = QUrl()

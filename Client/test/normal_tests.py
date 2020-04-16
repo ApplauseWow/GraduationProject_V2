@@ -12,22 +12,33 @@ if __name__ == '__main__':
     from PyQt5 import QtCore
     from PyQt5.QtWidgets import QDialog, QGridLayout
 
-    with open('../ui_design/js/aweek_every_hour_clockIn.js', 'r') as f:
-        js = f.read()
-    with open('../ui_design/js/html_model.html', 'r') as f:
-        html = f.read()
-    chart = "".join([html.format(300, 300),
-                     # "<script type='text/javascript' src='echarts-liquidfill.js'></script>",
-                     "<script>",
-                     "var data = {};".format([[0, 1, 5], [5, 3, 9]]),
-                     # "var clock_in = {};".format(30),
-                     # "var total = {};".format(50),
-                     "</script>",
-                     "<script>",
-                     js,
-                     "</script></body></html>"])
-    with open('html.html', 'w') as f:
-        f.write(chart)
+    # with open('../ui_design/js/aweek_every_hour_clockIn.js', 'r') as f:
+    #     js = f.read()
+    # with open('../ui_design/js/html_model.html', 'r') as f:
+    #     html = f.read()
+    # chart = "".join([html.format(300, 300),
+    #                  # "<script type='text/javascript' src='echarts-liquidfill.js'></script>",
+    #                  "<script>",
+    #                  "var data = {};".format([[0, 1, 5], [5, 3, 9]]),
+    #                  # "var clock_in = {};".format(30),
+    #                  # "var total = {};".format(50),
+    #                  "</script>",
+    #                  "<script>",
+    #                  js,
+    #                  "</script></body></html>"])
+    # with open('html.html', 'w') as f:
+    #     f.write(chart)
+
+    # import time
+    # import datetime
+    # start = datetime.datetime.now()
+    # print(start, type(start))
+    # end = datetime.datetime(2020, 4, 16, 16, 00, 05, 582000)
+    # print(end, type(end))
+    # sub = end - start
+    # print(sub, sub.seconds, float(sub.seconds)/3600, "{:.2f}".format(float(sub.seconds)/3600))
+
+    import os
 
     # kwargs = dict(
     #     name='柱形图',
@@ -42,7 +53,8 @@ if __name__ == '__main__':
     # lay = QGridLayout()
     # w = QDialog()
     # win_ = QWebView()
-    # win_.load(QtCore.QUrl('http://www.baidu.com'))
+    # p = 'file:///' + os.path.join(os.getcwd(), 'html.html').replace("\\", "/")
+    # win_.load(QtCore.QUrl(p))
     # win_.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # 影藏窗口
     # win_.page().mainFrame().setScrollBarPolicy(QtCore.Qt.Horizontal, QtCore.Qt.ScrollBarAlwaysOff)  # 取消滚动条
     # win_.page().mainFrame().setScrollBarPolicy(QtCore.Qt.Vertical, QtCore.Qt.ScrollBarAlwaysOff)
@@ -57,6 +69,7 @@ if __name__ == '__main__':
     # lay.addWidget(win_2, 0, 5, 5, 5)
     # w.setLayout(lay)
     # w.show()
+    # win_.show()
     # sys.exit(app.exec_())
 
     # from cv2.cv2 import imread
@@ -251,10 +264,23 @@ SELECT sum(mydata) FROM mytable WHERE year(dt)= year(str_to_date('2012-11-05','%
     SELECT round(TimeStampDiff(*MINUTE/HOUR/SECOND/WEEK/YEAR/MONTH,*date/datetime,*date/datetime)/60, *精确到小数后几位);
     教师：（所有人）
     今日出勤人数：SELECT count(*) FROM attendance_record WHERE date(date_time)=str_to_date(current_date(), '%Y-%m-%d') and record_type = 0;
-    本周每天每个时间段的出勤人数:但是没有的时间段就没有,但无所谓echarts表格是坐标
-    select weekday(aweek.date_time),date_format(aweek.date_time,'%H'),count(*)
-    from (select date_time from attendance_record where record_type = 0 and date_time between current_date()-weekday(current_date()) and current_date() + 7 - weekday(current_date()) ORDER BY date_time asc) aweek
-    group by weekday(aweek.date_time), date_format(aweek.date_time,'%H');
+    本周每天每个时间段的出勤/离岗人数:但是没有的时间段就没有,但无所谓echarts表格是坐标
+    select weekday(date_time), date_format(date_time,'%H'), count(*)
+    from attendance_record
+    where record_type = 0/1 and date_time between current_date()-weekday(current_date()) and current_date() + 7 - weekday(current_date())
+    group by weekday(date_time), date_format(date_time,'%H')
+    ORDER BY date_time asc
     
-    
+    学生：
+    本周每天工作时长：在python中处理更方便，查询后filter按照0-6 Mon-Sun 过滤 再做时差计算感觉用得上reduce函数，跳过不成对数据 eg：0 0 1 则计算第二个0与1 | 0 1 0 不计算最后一个0 | 0 1 1 第二个1跳过其实必须为0 | 1 1 0 跳过前两个1
+    (day, record_type, date_time)  date_time - date_time .hour
+    select weekday(date_time) as day, record_type, date_time
+    from attendance_record
+    where user_id = 201610414206 and date_time between current_date()-weekday(current_date()) and current_date() + 7 - weekday(current_date())
+    ORDER BY date_time asc;
+    本周上岗/离岗时间戳分布：[[星期,小时,坐标图形大小], ]
+    select weekday(date_time), date_format(date_time,'%H'), 5
+    from attendance_record
+    where user_id = 201610414206 and record_type = 0/1 and date_time between current_date()-weekday(current_date()) and current_date() + 7 - weekday(current_date())
+    ORDER BY date_time asc
     """

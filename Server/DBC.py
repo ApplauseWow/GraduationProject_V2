@@ -54,7 +54,7 @@ class DBC(object):
         获取总记录的条数
         :param table: 表名
         :param _type: 限制要求　一个字典
-        :return: dict{'operation':DBOpertion., 'exception': e, 'result':results | None}
+        :return: dict{'operation':DBOperation., 'exception': e, 'result':results | None}
         """
 
         if _type:  # 有筛选要求
@@ -63,7 +63,7 @@ class DBC(object):
             res = filter(lambda x: x.get('name') == table, root.findall('table'))  # 找到table的sql
             sql = res[0].find('limited_count').text
         else:  # 没有要求
-            sql = "select count(*) from %s" % (table)
+            sql = "select count(*) from %s" % table
         cursor = self.conn.cursor()
         try:
             if _type:
@@ -83,7 +83,8 @@ class DBC(object):
         获取表所有信息
         :param table:　表名
         :param start_end:　(起始索引号, 一页总条数) | ()
-        :return:dict{'operation':DBOpertion., 'exception': e, 'result':results | None}
+        :param limitation: 限制条件 {字典} | None
+        :return:dict{'operation':DBOperation., 'exception': e, 'result':results | None}
         """
 
         if start_end == () and not limitation:  # 不需要分页, 也没有限制
@@ -125,7 +126,7 @@ class DBC(object):
         :param op: 操作->insert | delete | update
         :param table: 表名
         :param para_dict: 数据字典
-        :return:dict{'operation':DBOpertion., 'exception': e, 'result':None}
+        :return:dict{'operation':DBOperation., 'exception': e, 'result':None}
         """
 
         tree = ET.parse(self.sql_mapper)
@@ -141,6 +142,32 @@ class DBC(object):
             else:  # 操作失败
                 return {'operation': DBOperation.Failure, 'exception': Exception("fail to {}".format(op)), 'result': None}
         except Exception as e:  # 操作失败
+            return {'operation': DBOperation.Failure, 'exception': e, 'result': None}
+        finally:
+            cursor.close()
+
+    def special_search(self, table, op, data=None):
+        """
+        获取表所有信息
+        :param table:　表名
+        :param op:　操作
+        :param data: 限制条件 {字典} | None
+        :return:dict{'operation':DBOperation., 'exception': e, 'result':results | None}
+        """
+
+        tree = ET.parse(self.sql_mapper)
+        root = tree.getroot()
+        res = filter(lambda x: x.get('name') == table, root.findall('table'))  # 找到table的sql
+        sql = res[0].find(op).text
+        cursor = self.conn.cursor()
+        try:
+            if not data:
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, data)
+            results = cursor.fetchall()
+            return {'operation': DBOperation.Success, 'exception': None, 'result': results}
+        except Exception as e:
             return {'operation': DBOperation.Failure, 'exception': e, 'result': None}
         finally:
             cursor.close()
@@ -175,7 +202,10 @@ if __name__ == '__main__':
         # print(s)
         # print db.search_record('user_info', (0, 8))['result']
         # print str(None)=='None'
-        print db.search_record('user_info', (), {'user_id': 2})['result']
+
+        cur = db.special_search('attendance_record', 'self_timestamp_search', {'user_id': 201610414206, 'record_type': 0})
+        res = cur['result']
+        print(res)
 
     except Exception as e:
         print(e)

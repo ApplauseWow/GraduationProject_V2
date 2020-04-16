@@ -16,7 +16,8 @@ class CallMethodImplement(object):
 
     __obj2table_mapper = {  # 对象映射到表
         'note': 'note_info',  # 公告
-        'user': 'user_info'  # 用户
+        'user': 'user_info',  # 用户
+        'attendance': 'attendance_record'  # 考勤记录
         # ...
     }
 
@@ -48,7 +49,7 @@ class CallMethodImplement(object):
             res['operation'] = self.__operation_mapper[res['operation']]
             return res
         except Exception as e:
-            return {'operation':ClientRequest.Failure, 'exception':e, 'result': None}
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
     @log
     def GetAllObjects(self, ip, data):
@@ -112,7 +113,7 @@ class CallMethodImplement(object):
     @log
     def ModifyTheObject(self, ip, data):
         """
-        修改对象
+        修改一个对象
         :param ip: 用于识别客户端
         :param data: 请求参数
         :return: dict{'operation': , 'exception': , 'result': }
@@ -131,7 +132,7 @@ class CallMethodImplement(object):
     @log
     def DeleteTheObject(self, ip, data):
         """
-        修改对象
+        删除一个对象
         :param ip: 用于识别客户端
         :param data: 请求参数
         :return: dict{'operation': , 'exception': , 'result': }
@@ -150,7 +151,7 @@ class CallMethodImplement(object):
     @log
     def GetTheObject(self, ip, data):
         """
-        修改对象
+        获取一个对象
         :param ip: 用于识别客户端
         :param data: 请求参数
         :return: dict{'operation': , 'exception': , 'result': }
@@ -165,3 +166,61 @@ class CallMethodImplement(object):
             return res
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+
+    @log
+    def GetClockInOrOutTimeStamp(self, ip, data):
+        """
+        获取上岗/离岗时间戳
+        :param ip: 用于识别客户端
+        :param data: 请求参数
+        :return: dict{'operation': , 'exception': , 'result': }
+        """
+
+        try:
+            conn = DBC(client_ip=ip)
+            table = self.__obj2table_mapper[data['obj']]
+            data.pop('obj')
+            data['record_type'] = AttendanceType.ClockIn.value
+            res_clock_in = conn.special_search(table=table, op='self_timestamp_search', data=data)
+            data['record_type'] = AttendanceType.ClockOut.value
+            res_clock_out = conn.special_search(table=table, op='self_timestamp_search', data=data)
+            if res_clock_in['operation'] == DBOperation.Failure or res_clock_out['operation'] == DBOperation.Failure:  # 其一操作失败
+                res = {'operation': ClientRequest.Failure, 'exception': Exception('fail to get the clock in/out timestamp'), 'result': None}
+            else:  # 双双成功
+                hour_mapper = {'00': 0, '01': 1, '02': 2, '03': 3, '04': 4, '05': 5, '06': 6,
+                               '07': 7, '08': 8, '09': 9, '10': 10, '11': 11,
+                               '12': 12, '13': 13, '14': 14, '15': 15, '16': 16, '17': 17,
+                               '18': 18, '19': 19, '20': 20, '21': 21, '22': 22, '23': 23}
+                clock_in = res_clock_in['result']
+                clock_out = res_clock_out['result']
+                clock_in_list = map(lambda x: [x[0], hour_mapper[x[1]], x[2]], clock_in)
+                clock_out_list = map(lambda x: [x[0], hour_mapper[x[1]], x[2]], clock_out)
+                res = {'operation': ClientRequest.Success, 'exception': None, 'result': {'clock_in': clock_in_list, 'clock_out': clock_out_list}}
+            return res
+        except Exception as e:
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+
+    @log
+    def GetWorkHourEverYDay(self, ip, data):
+        """
+        获取本周工作时长
+        :param ip: 用于识别客户端
+        :param data: 请求参数
+        :return: dict{'operation': , 'exception': , 'result': }
+        """
+
+        try:
+            conn = DBC(client_ip=ip)
+            table = self.__obj2table_mapper[data['obj']]
+            data.pop('obj')
+            res = conn.special_search(table=table, op='self_week_search', data=data)
+            res['operation'] = self.__operation_mapper[res['operation']]
+            if res['operation'] == ClientRequest.Failure:  # 失败
+                return res
+            else:  # 成功，处理数据
+                """
+                待处理数据！！！！计算时差
+                """
+        except Exception as e:
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+

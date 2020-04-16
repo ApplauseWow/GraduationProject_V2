@@ -7,6 +7,7 @@ from TableColumnDict import TABLE_COLUMN_DICT
 from ColumnMapper import Index2ColName, ColName2Index
 import time
 import datetime
+import os
 
 
 class Page(Pagination):
@@ -775,20 +776,61 @@ class Management(ManagementWindow):
                     self.d_tel.setText(data['tel'])
                     self.d_email.setText(data['email'])
                     self.isTeacher(None)
-                    self.initCharts()
+                    if UserType(int(data['user_type'])) == UserType.Student:
+                        self.initCharts(int(data['user_id']))
 
                 self.d_user_type.activated.connect(self.isTeacher)
                 self.bt_insert.clicked.connect(self.CreateNewUser)
                 self.bt_update.clicked.connect(self.ModifyUser)
                 self.bt_close.clicked.connect(self.close)
 
-            def initCharts(self):
+            def initCharts(self, user_id):
                 """
                 初始化考勤统计图表
                 :return:
                 """
 
-                pass # 待写！！！！！
+                data = {'user_id': user_id}
+                try:
+                    # 查询数据
+                    conn = CR()
+                    res_everyday_hour = conn.GetWorkHourEverYDayRequest(data)
+                    res_timestamp = conn.GetClockInOrOutTimeStampRequest(data)
+                    conn.CloseChannel()
+                    # 创建js文件
+                    with open('./ui_design/js/html_model.html', 'r') as f:
+                        html_head = f.read()
+                    with open('./ui_design/js/self_clockInOrOut_distribution.js', 'r') as f:
+                        js_timestamp = f.read()
+                    # with open('./ui_design/js/self_everyday_workhour_aweek.js', 'r') as f:
+                    #     js_everyday_hour = f.read()
+                    html_timestamp = "".join([html_head.format(400, 400),
+                                              "<script>var data_clockin = {};var data_clockout = {};</script>".format(res_timestamp['clock_in'], res_timestamp['clock_out']),
+                                              "<script>",
+                                              js_timestamp,
+                                              "</script></body></html>"])
+                    # html_everyday_hour = "".join({html_head.format(300, 300),
+                    #                               "<script>var data = {};</script>".format(res_everyday_hour),
+                    #                               "<script>",
+                    #                               js_everyday_hour,
+                    #                               "</script></body></html>"})
+                    with open('./ui_design/html_cache/self_1.html', 'w') as f:
+                        f.write(html_timestamp)
+                    # with open('./ui_design/html_cache/self_2.html') as f:
+                    #     f.write(html_everyday_hour)
+
+                    current_path = os.getcwd()  # 当前目录
+                    # 加载网页
+                    self.timestamp_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\', '/'))
+                    self.timestamp.setUrl(self.timestamp_url)
+                    # self.hour_everyday_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\', '/'))
+                    # self.hour_everyday.setUrl(self.hour_everyday_url)
+                except Exception as e:
+                    print(e)
+                    warning = Alert(words=u" 统计失败！")
+                    warning.exec_()
+                finally:
+                    self.close()
 
             def CreateNewUser(self):
                 """
