@@ -1,13 +1,44 @@
 # -*-coding:utf-8-*-
 import sys
+import time
+import datetime
+import os
+from PyQt5.QtGui import QImage
+
 from ui_design.ui_finish import *
 from TypesEnum import *
 from ClientRequest import CR
 from TableColumnDict import TABLE_COLUMN_DICT
 from ColumnMapper import Index2ColName, ColName2Index
-import time
-import datetime
-import os
+
+
+class Alert(WarningWindow):
+    """
+    警告提醒窗
+    """
+
+    def __init__(self, words=None, _type=None):
+        super(Alert, self).__init__()
+        if words:
+            self.words.setText(words)
+        else:
+            pass
+        if _type == 'alright':
+            self.pix = QPixmap('./ui_design/alright.png').scaled(100, 100)
+            self.warning.setPixmap(self.pix)
+        # 设置定时器
+        self.time_count = QTimer()
+        self.time_count.setInterval(800)
+        self.time_count.start()
+        self.time_count.timeout.connect(self.timeout_close)
+
+    def timeout_close(self):
+        """
+        倒计时关闭此窗口
+        :return: None
+        """
+
+        self.close()
 
 
 class Page(Pagination):
@@ -182,6 +213,8 @@ class Page(Pagination):
 
         pass
 
+
+# 系统前端主界面即考勤界面，内部组件抽象为内部类包含注册界面，验证界面
 class SysHome(MainWindow):
     """
     主界面
@@ -204,52 +237,21 @@ class SysHome(MainWindow):
 
         self.clock.display(time.strftime("%X", time.localtime()))
 
-
-class Alert(WarningWindow):
-    """
-    警告提醒窗
-    """
-
-    def __init__(self, words=None, _type=None):
-        super(Alert, self).__init__()
-        if words:
-            self.words.setText(words)
-        else:
-            pass
-        if _type == 'alright':
-            self.pix = QPixmap('./ui_design/alright.png').scaled(100, 100)
-            self.warning.setPixmap(self.pix)
-        # 设置定时器
-        self.time_count = QTimer()
-        self.time_count.setInterval(800)
-        self.time_count.start()
-        self.time_count.timeout.connect(self.timeout_close)
-
-    def timeout_close(self):
+    class Register(RegisterWindow):
         """
-        倒计时关闭此窗口
-        :return: None
+        人脸注册窗口
         """
 
-        self.close()
+        def __init__(self):
+            RegisterWindow.__init__(self)
 
+    class MyInfo(InfoWindow):
+        """
+        考勤窗口｜个人信息显示窗口
+        """
 
-class Register(RegisterWindow):
-    """
-    人脸注册窗口
-    """
-
-    def __init__(self):
-        super(Register, self).__init__()
-
-
-class MyInfo(InfoWindow):
-    """
-    考勤窗口｜个人信息显示窗口
-    """
-
-    def __init__(self):
-        super(MyInfo, self).__init__()
+        def __init__(self):
+            InfoWindow.__init__(self)
 
 
 class Management(ManagementWindow):
@@ -314,7 +316,7 @@ class Management(ManagementWindow):
                 self.lay.setRowStretch(1, 1)
                 self.lay.setRowStretch(3, 4)
                 self.lay.setRowStretch(7, 1)
-                self.bt_insert.clicked.connect(lambda :self.createANoteDetail(user_type, None))
+                self.bt_insert.clicked.connect(lambda: self.createANoteDetail(user_type, None))
             elif UserType(user_type) == UserType.Student:  # 学生
                 self.current_note = self.CurrentNote(user_type)
                 self.lay.addWidget(self.current_note, 2, 0, 5, 5)
@@ -345,16 +347,6 @@ class Management(ManagementWindow):
             win = self.ANote(user_type, data)
             win.update_signal.connect(self.initPage)
             win.exec_()
-
-        def updatePreviousNote(self, widget):
-            """
-            教师作废公告后刷新过期公告栏
-            :param widget: 控件对象
-            :return: None
-            """
-
-            widget.initializedModel()
-            widget.updateStatus()
 
         class CurrentNote(Page):
             """
@@ -390,16 +382,16 @@ class Management(ManagementWindow):
                     warning = Alert(words=u"查询失败！")
                     warning.exec_()
 
-            def queryRecord(self, limitIndex):
+            def queryRecord(self, limit_index):
                 """
                 重写查询记录
-                :param limitIndex:从第limitIndex条开始
+                :param limit_index:从第limitIndex条开始
                 :return:
                 """
 
                 try:
                     conn = CR()
-                    notes = conn.GetAllNotesRequest(start=limitIndex, num=self.pageRecordCount, is_valid=NoteStatus.Valid.value)
+                    notes = conn.GetAllNotesRequest(start=limit_index, num=self.pageRecordCount, is_valid=NoteStatus.Valid.value)
                     self.addRecords(self.col_list, notes)
                     conn.CloseChannel()
                 except Exception as e:
@@ -421,9 +413,7 @@ class Management(ManagementWindow):
                     if res == ClientRequest.Success:
                         alright = Alert(words=u"操作成功！", _type='alright')
                         alright.exec_()
-                        self.initializedModel()  # 重新刷新页面色
-                        self.updateStatus()
-                        self.update_signal.emit()
+                        self.update_signal.emit()  # 更新页面
                     conn.CloseChannel()
                 except Exception as e:
                     print(e)
@@ -741,7 +731,7 @@ class Management(ManagementWindow):
                     item = self.table.item(row, c)
                     if isinstance(item, QTableWidgetItem):  # 是数据
                         if Index2ColName['user'][c] == 'user_type':
-                            mapper = {u"教师":UserType.Teacher.value, u"学生":UserType.Student.value}
+                            mapper = {u"教师": UserType.Teacher.value, u"学生": UserType.Student.value}
                             data[Index2ColName['user'][c]] = mapper[item.text()]
                         else:
                             data[Index2ColName['user'][c]] = item.text()
@@ -802,29 +792,29 @@ class Management(ManagementWindow):
                         html_head = f.read()
                     with open('./ui_design/js/self_clockInOrOut_distribution.js', 'r') as f:
                         js_timestamp = f.read()
-                    # with open('./ui_design/js/self_everyday_workhour_aweek.js', 'r') as f:
-                    #     js_everyday_hour = f.read()
+                    with open('./ui_design/js/self_everyday_workhour_aweek.js', 'r') as f:
+                        js_everyday_hour = f.read()
                     html_timestamp = "".join([html_head.format(400, 400),
                                               "<script>var data_clockin = {};var data_clockout = {};</script>".format(res_timestamp['clock_in'], res_timestamp['clock_out']),
                                               "<script>",
                                               js_timestamp,
                                               "</script></body></html>"])
-                    # html_everyday_hour = "".join({html_head.format(300, 300),
-                    #                               "<script>var data = {};</script>".format(res_everyday_hour),
-                    #                               "<script>",
-                    #                               js_everyday_hour,
-                    #                               "</script></body></html>"})
+                    html_everyday_hour = "".join([html_head.format(400, 400),
+                                                  "<script>var data = {};</script>".format(res_everyday_hour),
+                                                  "<script>",
+                                                  js_everyday_hour,
+                                                  "</script></body></html>"])
                     with open('./ui_design/html_cache/self_1.html', 'w') as f:
                         f.write(html_timestamp)
-                    # with open('./ui_design/html_cache/self_2.html') as f:
-                    #     f.write(html_everyday_hour)
+                    with open('./ui_design/html_cache/self_2.html', 'w') as f:
+                        f.write(html_everyday_hour)
 
                     current_path = os.getcwd()  # 当前目录
                     # 加载网页
                     self.timestamp_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\', '/'))
                     self.timestamp.setUrl(self.timestamp_url)
-                    # self.hour_everyday_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\', '/'))
-                    # self.hour_everyday.setUrl(self.hour_everyday_url)
+                    self.hour_everyday_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\', '/'))
+                    self.hour_everyday.setUrl(self.hour_everyday_url)
                 except Exception as e:
                     print(e)
                     warning = Alert(words=u" 统计失败！")
@@ -1058,9 +1048,12 @@ if __name__ == "__main__":
     win_.show()
     # win1 = SysHome()
     # win2 = MyInfo()
-    # win2.show()
     # win3 = Register()
+
+    # win4 = Alert()
+    #
+    # win1.show()
+    # win2.show()
     # win3.show()
-    # win4 = Warning()
     # win4.show()
     sys.exit(app.exec_())

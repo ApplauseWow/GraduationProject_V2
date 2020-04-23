@@ -272,7 +272,7 @@ SELECT sum(mydata) FROM mytable WHERE year(dt)= year(str_to_date('2012-11-05','%
     ORDER BY date_time asc
     
     学生：
-    本周每天工作时长：在python中处理更方便，查询后filter按照0-6 Mon-Sun 过滤 再做时差计算感觉用得上reduce函数，跳过不成对数据 eg：0 0 1 则计算第二个0与1 | 0 1 0 不计算最后一个0 | 0 1 1 第二个1跳过其实必须为0 | 1 1 0 跳过前两个1
+    本周每天工作时长：在python中处理更方便，查询后filter按照0-6 Mon-Sun 过滤 再做时差计算感觉用得上reduce函数，跳过不成对数据 eg：0 0 1 则计算第二个0与1 | 0 1 0 不计算最后一个0 | 0 1 1 第二个1跳过其实必须为0 | 1 1 0 跳过前两个1  0010011010101011010
     (day, record_type, date_time)  date_time - date_time .hour
     select weekday(date_time) as day, record_type, date_time
     from attendance_record

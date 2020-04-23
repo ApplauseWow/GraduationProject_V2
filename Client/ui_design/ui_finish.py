@@ -15,25 +15,6 @@ from register_win import Ui_register_win
 from note_detail import Ui_Note_Detail_Win
 
 
-class DIYLabel(QLabel):
-    """
-    自定义Label控件
-    拥有点击事件响应的Label
-    """
-
-    clicked = pyqtSignal()  # 定义信号量
-
-    def mouseReleaseEvent(self, QMouseEvent):
-        """
-        鼠标松开时触发
-        :param QMouseEvent:鼠标事件
-        :return: None
-        """
-
-        if QMouseEvent.button() == Qt.LeftButton:  # 鼠标左键松开
-            self.clicked.emit()  # 发送信号
-
-
 class MainWindow(Ui_MainWindow, QMainWindow):
     """
     主界面二次设计
@@ -48,14 +29,15 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         desk_height = desktop.screenGeometry().height()
 
         # 摄像头图像设置
-        self.frame = DIYLabel(self)
+        self.frame = QLabel()
         self.frame.setGeometry(0, 0, desk_width, desk_height)
 
         self.setupUi(self)
 
         # 按钮定位
         self.buttons = [self.att_rec, self.face_login, self.face_rec, self.face_reg]
-        map(lambda x: x.move(desk_width*0.80, desk_height*0.33+self.buttons.index(x)*(x.height()+8)), self.buttons)
+        map(lambda x: x.move(desk_width * 0.80, desk_height * 0.33 + self.buttons.index(x) * (x.height() + 8)),
+            self.buttons)
         map(lambda x: x.raise_(), self.buttons)
 
         # 设置时钟
@@ -64,7 +46,7 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         self.clock.setMode(QLCDNumber.Dec)
         self.clock.setSegmentStyle(QLCDNumber.Flat)
         self.clock.display(time.strftime("%X", time.localtime()))
-        self.clock.setStyleSheet("QLCDNumber{color:rgba(255,0,0,100);}")
+        self.clock.setStyleSheet("QLCDNumber{color:rgba(255,0,0,100); border:None;}")
         self.clock.resize(280, 120)
         self.clock.move(50, desk_height - 30 - self.clock.height())
 
@@ -87,7 +69,7 @@ class InfoWindow(Ui_id_info_win, QDialog):
         desk_height = desktop.availableGeometry().height()
 
         # 窗体定位
-        self.move(int(desk_width*0.3), int(desk_height*0.3))
+        self.move(int(desk_width * 0.3), int(desk_height * 0.3))
 
         # 修改label样式
         labels = [self.l_id, self.l_name, self.l_type, self.user_id, self.user_name, self.user_type]
@@ -101,7 +83,7 @@ class InfoWindow(Ui_id_info_win, QDialog):
                                       "                   color:rgb(255,255,255);                "
                                       "                   padding:6px; "
                                       "                   text-align: center;                      "
-                                      "                   }"),labels)
+                                      "                   }"), labels)
 
         self.setAttribute(Qt.WA_TranslucentBackground)  # 窗体背景透明
         self.setWindowFlags(Qt.FramelessWindowHint)  # 影藏窗口
@@ -149,31 +131,31 @@ class RegisterWindow(QDialog, Ui_register_win):
         desk_height = desktop.screenGeometry().height()
 
         # 移动窗口
-        self.move(int(desk_width*0.3), int(desk_height*0.3))
+        self.move(int(desk_width * 0.3), int(desk_height * 0.3))
 
         # 设置按钮样式
         buttons = [self.bt_again, self.bt_cancel, self.bt_reg]
         map(lambda x: x.setStyleSheet("QPushButton{"
-"                   background-color:rgba(255,165,0,80);"
-"                   border-style:outset;                  "
-"                   border-width:4px;                     "
-"                   border-radius:10px;                "
-"                   border-color:rgba(255,255,255,80);   "
-"                   font:bold 18px;                    "
-"                   color:rgba(0,0,0,100);                "
-"                   padding:6px;                       "
-"                   }"
-"                   QPushButton:pressed{"
-"                   background-color:rgba(255,165,0,200);"
-"                   border-color:rgba(255,255,255,30);"
-"                   border-style:inset;"
-"                   color:rgba(0,0,0,100);"
-"                   }"
-"                   QPushButton:hover{"
-"                   background-color:rgba(255,165,0,100);"
-"                   border-color:rgba(255,255,255,200);"
-"                   color:rgba(0,0,0,200);"
-"                   }"), buttons)
+                                      "                   background-color:rgba(255,165,0,80);"
+                                      "                   border-style:outset;                  "
+                                      "                   border-width:4px;                     "
+                                      "                   border-radius:10px;                "
+                                      "                   border-color:rgba(255,255,255,80);   "
+                                      "                   font:bold 18px;                    "
+                                      "                   color:rgba(0,0,0,100);                "
+                                      "                   padding:6px;                       "
+                                      "                   }"
+                                      "                   QPushButton:pressed{"
+                                      "                   background-color:rgba(255,165,0,200);"
+                                      "                   border-color:rgba(255,255,255,30);"
+                                      "                   border-style:inset;"
+                                      "                   color:rgba(0,0,0,100);"
+                                      "                   }"
+                                      "                   QPushButton:hover{"
+                                      "                   background-color:rgba(255,165,0,100);"
+                                      "                   border-color:rgba(255,255,255,200);"
+                                      "                   color:rgba(0,0,0,200);"
+                                      "                   }"), buttons)
 
         # 设置进度条
         self.process.setStyleSheet("QProgressBar "
@@ -239,7 +221,7 @@ class ManagementWindow(QDialog):
         self.bt_seat = QPushButton(u"工位管理" if self.user_type == 1 else u"查看工位")
         self.bt_seat.setObjectName("seat")
         self.bts_pub = [self.bt_note, self.bt_attendance, self.bt_group,
-                        self.bt_project,self.bt_competition, self.bt_achievement,
+                        self.bt_project, self.bt_competition, self.bt_achievement,
                         self.bt_permit, self.bt_source, self.bt_task,
                         self.bt_seat, self.bt_close]
         # --教师组
@@ -270,39 +252,39 @@ class ManagementWindow(QDialog):
 
         # 根据按钮个数设置左右布局
         self.whole_layout.addWidget(self.left_menu, 0, 0, len(self.bts), 2)  # 左部菜单在０行０列开始占１２行３列
-        self.whole_layout.addWidget(self.right_page, 0, 2, len(self.bts), len(self.bts)-2)  # 右部页面在０行３列开始占１２行１０列
+        self.whole_layout.addWidget(self.right_page, 0, 2, len(self.bts), len(self.bts) - 2)  # 右部页面在０行３列开始占１２行１０列
 
         # 布置按钮
         for row, bt in enumerate(self.bts):  # 排列按钮
             self.menu_dict[bt.objectName()] = row
             self.left_layout.addWidget(bt, row, 0, 1, 3)  # 从row行0列开始占1行3列
             bt.setStyleSheet("QPushButton{"
-"                   background-color:rgba(255,255,255,255);"
-"                   border-style:outset;                  "
-"                   border-width:2px;                     "
-"                   border-radius:20px;                "
-"                   border-color:rgba(255,165,0,100);   "
-"                   font:bold 23px;                    "
-"                   color:rgba(255,165,0,130);                "
-"                   padding:6px;                      "
+                             "                   background-color:rgba(255,255,255,255);"
+                             "                   border-style:outset;                  "
+                             "                   border-width:2px;                     "
+                             "                   border-radius:20px;                "
+                             "                   border-color:rgba(255,165,0,100);   "
+                             "                   font:bold 23px;                    "
+                             "                   color:rgba(255,165,0,130);                "
+                             "                   padding:6px;                      "
                              "text-align:left"
-"                   }"
-"                   QPushButton:pressed{"
-"                   background-color:rgba(255,255,255,255);"
-"                   border-color:rgba(255,165,0,255);"
-"                   color:rgba(255,165,0,255);"
+                             "                   }"
+                             "                   QPushButton:pressed{"
+                             "                   background-color:rgba(255,255,255,255);"
+                             "                   border-color:rgba(255,165,0,255);"
+                             "                   color:rgba(255,165,0,255);"
                              "border-right:8px solid orange;"
                              "border-left:8px solid orange;"
                              "text-align:center;"
-"                   }"
-"                   QPushButton:hover{"
-"                   background-color:rgba(255,255,255,255);"
-"                   border-color:rgba(255,165,0,255);"
-"                   color:rgba(255,165,0,255);"
+                             "                   }"
+                             "                   QPushButton:hover{"
+                             "                   background-color:rgba(255,255,255,255);"
+                             "                   border-color:rgba(255,165,0,255);"
+                             "                   color:rgba(255,165,0,255);"
                              "border-right:8px solid orange;"
                              "border-left:8px solid orange;"
                              "text-align:center;"
-"                   }")
+                             "                   }")
 
         self.setLayout(self.whole_layout)
 
@@ -731,9 +713,9 @@ class MyselfInfo(QWidget):
         self.myself_lay.addWidget(self.l_user_type, 3, 2, 1, 1)
         self.myself_lay.addWidget(self.d_user_type, 3, 3, 1, 1)
         self.myself_lay.addWidget(self.l_grade_class, 4, 2, 1, 1)
-        self.myself_lay.addWidget(self.d_grade, 4, 3,)
-        self.myself_lay.addWidget(self.d_major, 4, 4,)
-        self.myself_lay.addWidget(self.d_class, 4, 5,)
+        self.myself_lay.addWidget(self.d_grade, 4, 3, )
+        self.myself_lay.addWidget(self.d_major, 4, 4, )
+        self.myself_lay.addWidget(self.d_class, 4, 5, )
         self.myself_lay.addWidget(self.l_tel, 5, 2, 1, 1)
         self.myself_lay.addWidget(self.d_tel, 5, 3, 1, 3)
         self.myself_lay.addWidget(self.l_email, 6, 2, 1, 1)
@@ -1190,6 +1172,7 @@ class OperationButtonInTable(QPushButton):
 
 if __name__ == '__main__':
     import sys
+
     app = QApplication(sys.argv)
     win = MyselfInfo()
     win.show()

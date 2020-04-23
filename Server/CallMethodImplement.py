@@ -1,5 +1,7 @@
 # -*-coding:utf-8
 # 封装rpc请求函数
+import re
+
 from Log import log
 from TypesEnum import *
 from DBC import DBC
@@ -200,7 +202,7 @@ class CallMethodImplement(object):
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
-    @log
+    # @log
     def GetWorkHourEverYDay(self, ip, data):
         """
         获取本周工作时长
@@ -218,9 +220,26 @@ class CallMethodImplement(object):
             if res['operation'] == ClientRequest.Failure:  # 失败
                 return res
             else:  # 成功，处理数据
-                """
-                待处理数据！！！！计算时差
-                """
+                # 计算本周每日在岗时长
+                week_hours = []
+                for day in range(7):
+                    today_records = filter(lambda record: record[0] == day, res['result'])  # 今日打卡记录
+                    record_type_sequence = "".join([str(record[1]) for record in today_records])  # 打卡记录类型序列，用于检测并定位有效计算对
+                    # 扫描序列，定位有效对
+                    pattern = re.compile(r"01")
+                    location = [match_obj.span()[0] for match_obj in re.finditer(pattern, record_type_sequence)]
+                    # 计算时差
+                    hours = map(lambda index: (today_records[index + 1][2] - today_records[index][2]).seconds, location)
+                    # 雷家时长
+                    today_hours = float(reduce(lambda a, b: a + b, hours, 0))/3600
+                    # 星期day加入本周时长列表
+                    week_hours.append(round(today_hours, 3))
+                res['result'] = week_hours
+                return res
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
+
+# test
+if __name__ == '__main__':
+    print(CallMethodImplement().GetWorkHourEverYDay(ip='127.0.0.1', data={'user_id': 201610414206, 'obj': 'attendance'}))

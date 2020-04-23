@@ -21,7 +21,7 @@
          </self_week_search>
         <!--注意：PS!sql中若%需要当做字符处理需要再加一个% 如下-->
          <self_timestamp_search>
-            select weekday(date_time), date_format(date_time,'%%H'), 5
+            select weekday(date_time), date_format(date_time,'%%H'), 7
             from `attendance_record`
             where `user_id` = %(user_id)s and `record_type` = %(record_type)s and date_time between current_date()-weekday(current_date()) and current_date() + 7 - weekday(current_date())
             ORDER BY date_time asc;
