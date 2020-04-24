@@ -1084,7 +1084,7 @@ class Management(ManagementWindow):
             """
 
             try:
-                # 查询数据
+                # 查询数据，此处应该更优雅，时间来不及，不值得执着于优美代码
                 conn = CR()
                 if UserType(self.user_type) == UserType.Student:  # 学生个人考勤页面
                     data = {'user_id': self.user_id}
@@ -1175,7 +1175,7 @@ class Management(ManagementWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win_ = Management(201610414206, 0)
+    win_ = Management(201610414206, 1)
     win_.show()
     # win1 = SysHome()
     # win2 = MyInfo()
