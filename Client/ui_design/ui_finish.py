@@ -844,7 +844,22 @@ class AttendanceChart(QWidget):
         # 布局
         self.lay = QGridLayout()
         # 添加控件
+        def setWeb(obj):
+            obj.page().mainFrame().setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)  # 取消滚动条
+            obj.page().mainFrame().setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
+            obj.setFixedSize(500, 500)
 
+        self.chart1 = QWebView()
+        self.chart1_url = QUrl()
+        self.chart2 = QWebView()
+        self.chart2_url = QUrl()
+        setWeb(self.chart1)
+        setWeb(self.chart2)
+        self.chart1.load(self.chart1_url)
+        self.chart2.load(self.chart2_url)
+
+        self.lay.addWidget(self.chart1)
+        self.lay.addWidget(self.chart2)
         # 最后self添加布局
         self.setLayout(self.lay)
 

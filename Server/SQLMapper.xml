@@ -12,7 +12,22 @@
     <table name="attendance_record">
          <insert>INSERT INTO `attendance_record` (`user_id`, `date_time`, `record_type`) VALUES (%(user_id)s, %(date_time)s, %(record_type)s);</insert>
          <delete>DELETE FROM `attendance_record` WHERE `record_id`=%(record_id)s;</delete>
-         <!--本周每天的考勤记录(星期,考勤类型,时间)-->
+        <!--本周每日每时段上岗/离岗人数-->
+        <all_each_time_count>
+            SELECT _week, each_hour, count(each_hour) as total
+            FROM (select weekday(date_time) as _week, date_format(date_time,'%H') as each_hour
+            from `attendance_record`
+            where `record_type` = %(record_type)s and date_time between current_date()-weekday(current_date()) and current_date() + 7 - weekday(current_date())
+            GROUP BY each_hour, _week, user_id
+            ORDER BY date_time asc) as t
+            GROUP BY _week, each_hour;
+        </all_each_time_count>
+        <!--今日上岗人数-->
+        <today_clockin_count>
+            select count(DISTINCT user_id) FROM `attendance_record`
+            WHERE `record_type`=0 AND DATE(date_time)=current_date();
+        </today_clockin_count>
+        <!--本周每天的考勤记录(星期,考勤类型,时间)-->
          <self_week_search>
              select weekday(date_time) as day, record_type, date_time
              from attendance_record

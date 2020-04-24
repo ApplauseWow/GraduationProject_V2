@@ -180,7 +180,7 @@ class Page(Pagination):
             self.table.setRowHeight(num_r, 50)
             for num_c, col in enumerate(col_list):
                 if col['is_pk']:  # 添加主键
-                   pk.append(row[num_c])
+                    pk.append(row[num_c])
                 if col['name'] == u'操作':  # 操作栏
                     self.table.setCellWidget(num_r, num_c, self.addOperationButton(pk))
                 else:  # 普通字段
@@ -198,7 +198,7 @@ class Page(Pagination):
         """
         widget = QWidget()
         bt = OperationButtonInTable(name=u'删除')
-        bt.clicked.connect(lambda : self.operationOnBtClicked(primary_key))
+        bt.clicked.connect(lambda: self.operationOnBtClicked(primary_key))
         hLayout = QHBoxLayout()
         hLayout.addWidget(bt)
         widget.setLayout(hLayout)
@@ -262,7 +262,8 @@ class Management(ManagementWindow):
     def __init__(self, user_id, user_type):
         ManagementWindow.__init__(self, user_id, user_type)
         # 添加顺序一定按照按钮顺序
-        self.page_one = self.ShowUsers(user_id=user_id, user_type=user_type) if UserType(user_type) == UserType.Teacher else self.ShowMyself(user_id=user_id, user_type=user_type)
+        self.page_one = self.ShowUsers(user_id=user_id, user_type=user_type) if UserType(
+            user_type) == UserType.Teacher else self.ShowMyself(user_id=user_id, user_type=user_type)
         self.page_two = self.ShowNotes(user_id=user_id, user_type=user_type)
 
         self.right_layout.addWidget(self.page_one)
@@ -367,7 +368,7 @@ class Management(ManagementWindow):
                 try:
                     conn = CR()
                     self.currentPage = 1
-                    self.totalRecordCount = conn.GetCountRequest('note', {'is_valid':NoteStatus.Valid.value})
+                    self.totalRecordCount = conn.GetCountRequest('note', {'is_valid': NoteStatus.Valid.value})
                     conn.CloseChannel()
                     if self.totalRecordCount % self.pageRecordCount == 0:
                         if self.totalRecordCount != 0:
@@ -391,7 +392,8 @@ class Management(ManagementWindow):
 
                 try:
                     conn = CR()
-                    notes = conn.GetAllNotesRequest(start=limit_index, num=self.pageRecordCount, is_valid=NoteStatus.Valid.value)
+                    notes = conn.GetAllNotesRequest(start=limit_index, num=self.pageRecordCount,
+                                                    is_valid=NoteStatus.Valid.value)
                     self.addRecords(self.col_list, notes)
                     conn.CloseChannel()
                 except Exception as e:
@@ -438,7 +440,7 @@ class Management(ManagementWindow):
                         pass
                 # 弹窗查看
                 note_detail = Management.ShowNotes.ANote(self.user_type, data)
-                note_detail.update_signal.connect(lambda :self.update_signal.emit())
+                note_detail.update_signal.connect(lambda: self.update_signal.emit())
                 note_detail.exec_()
 
         class PreviousNote(Page):
@@ -458,7 +460,7 @@ class Management(ManagementWindow):
                 try:
                     conn = CR()
                     self.currentPage = 1
-                    self.totalRecordCount = conn.GetCountRequest('note', {'is_valid':NoteStatus.Invalid.value})
+                    self.totalRecordCount = conn.GetCountRequest('note', {'is_valid': NoteStatus.Invalid.value})
                     conn.CloseChannel()
                     if self.totalRecordCount % self.pageRecordCount == 0:
                         if self.totalRecordCount != 0:
@@ -482,7 +484,8 @@ class Management(ManagementWindow):
 
                 try:
                     conn = CR()
-                    notes = conn.GetAllNotesRequest(start=limitIndex, num=self.pageRecordCount, is_valid=NoteStatus.Invalid.value)
+                    notes = conn.GetAllNotesRequest(start=limitIndex, num=self.pageRecordCount,
+                                                    is_valid=NoteStatus.Invalid.value)
                     self.addRecords(self.col_list, notes)
                     conn.CloseChannel()
                 except Exception as e:
@@ -795,7 +798,8 @@ class Management(ManagementWindow):
                     with open('./ui_design/js/self_everyday_workhour_aweek.js', 'r') as f:
                         js_everyday_hour = f.read()
                     html_timestamp = "".join([html_head.format(400, 400),
-                                              "<script>var data_clockin = {};var data_clockout = {};</script>".format(res_timestamp['clock_in'], res_timestamp['clock_out']),
+                                              "<script>var data_clockin = {};var data_clockout = {};</script>".format(
+                                                  res_timestamp['clock_in'], res_timestamp['clock_out']),
                                               "<script>",
                                               js_timestamp,
                                               "</script></body></html>"])
@@ -811,9 +815,13 @@ class Management(ManagementWindow):
 
                     current_path = os.getcwd()  # 当前目录
                     # 加载网页
-                    self.timestamp_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\', '/'))
+                    self.timestamp_url.setUrl(
+                        "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\',
+                                                                                                                  '/'))
                     self.timestamp.setUrl(self.timestamp_url)
-                    self.hour_everyday_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\', '/'))
+                    self.hour_everyday_url.setUrl(
+                        "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\',
+                                                                                                                  '/'))
                     self.hour_everyday.setUrl(self.hour_everyday_url)
                 except Exception as e:
                     print(e)
@@ -832,9 +840,12 @@ class Management(ManagementWindow):
                     data = {
                         'user_id': int(self.d_user_id.text()),
                         'user_type': self.d_user_type.currentData(),
-                        'major': self.d_major.text() if UserType(self.d_user_type.currentData()) == UserType.Student else None,
-                        'grade': int(self.d_grade.text()) if UserType(self.d_user_type.currentData()) == UserType.Student else None,
-                        '_class': int(self.d_class.text()) if UserType(self.d_user_type.currentData()) == UserType.Student else None,
+                        'major': self.d_major.text() if UserType(
+                            self.d_user_type.currentData()) == UserType.Student else None,
+                        'grade': int(self.d_grade.text()) if UserType(
+                            self.d_user_type.currentData()) == UserType.Student else None,
+                        '_class': int(self.d_class.text()) if UserType(
+                            self.d_user_type.currentData()) == UserType.Student else None,
                         'tel': int(self.d_tel.text()),
                         'email': self.d_email.text()
                     }
@@ -865,9 +876,12 @@ class Management(ManagementWindow):
                     data = {
                         'user_id': int(self.d_user_id.text()),
                         'user_type': self.d_user_type.currentData(),
-                        'major': self.d_major.text() if UserType(self.d_user_type.currentData()) == UserType.Student else None,
-                        'grade': int(self.d_grade.text()) if UserType(self.d_user_type.currentData()) == UserType.Student else None,
-                        '_class': int(self.d_class.text()) if UserType(self.d_user_type.currentData()) == UserType.Student else None,
+                        'major': self.d_major.text() if UserType(
+                            self.d_user_type.currentData()) == UserType.Student else None,
+                        'grade': int(self.d_grade.text()) if UserType(
+                            self.d_user_type.currentData()) == UserType.Student else None,
+                        '_class': int(self.d_class.text()) if UserType(
+                            self.d_user_type.currentData()) == UserType.Student else None,
                         'tel': int(self.d_tel.text()),
                         'email': self.d_email.text()
                     }
@@ -911,7 +925,9 @@ class Management(ManagementWindow):
                 :return:
                 """
 
-                checks = [self.d_user_id, self.d_grade, self.d_major, self.d_class, self.d_tel, self.d_email] if UserType(self.d_user_type.currentData()) == UserType.Student else [self.d_user_id, self.d_tel, self.d_email]
+                checks = [self.d_user_id, self.d_grade, self.d_major, self.d_class, self.d_tel,
+                          self.d_email] if UserType(self.d_user_type.currentData()) == UserType.Student else [
+                    self.d_user_id, self.d_tel, self.d_email]
                 for sz in checks:
                     szText = sz.text()
                     if sz is self.d_major or sz is self.d_email:
@@ -992,8 +1008,8 @@ class Management(ManagementWindow):
                     'user_id': int(self.d_user_id.text()),
                     'user_type': mapper[self.d_user_type.text()],
                     'major': self.d_major.text(),
-                    'grade': int(self.d_grade.text()) ,
-                    '_class': int(self.d_class.text()) ,
+                    'grade': int(self.d_grade.text()),
+                    '_class': int(self.d_class.text()),
                     'tel': int(self.d_tel.text()),
                     'email': self.d_email.text()
                 }
@@ -1040,6 +1056,125 @@ class Management(ManagementWindow):
                 return True
 
     # ---------------------ShowMyself  complete------------------------
+
+    class ShowAttendanceCharts(AttendanceChart):
+        """
+        继承AttendanceChart封装业务逻辑
+        数据需求：考勤记录处理后数据
+        描述：【考勤记录相关处理结果】一组信息
+        """
+
+        def __init__(self, user_id, user_type):
+            AttendanceChart.__init__(self)
+            self.user_id = user_id
+            self.user_type = user_type
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+        def createHTML(self):
+            """
+            创建图表页面
+            :return:
+            """
+
+            try:
+                # 查询数据
+                conn = CR()
+                if UserType(self.user_type) == UserType.Student:  # 学生个人考勤页面
+                    data = {'user_id': self.user_id}
+                    res_everyday_hour = conn.GetWorkHourEveryDayRequest(data)
+                    res_timestamp = conn.GetClockInOrOutTimeStampRequest(data)
+                    conn.CloseChannel()
+                    # 创建js文件
+                    with open('./ui_design/js/html_model.html', 'r') as f:
+                        html_head = f.read()
+                    with open('./ui_design/js/self_clockInOrOut_distribution.js', 'r') as f:
+                        js_timestamp = f.read()
+                    with open('./ui_design/js/self_everyday_workhour_aweek.js', 'r') as f:
+                        js_everyday_hour = f.read()
+                    html_timestamp = "".join([html_head.format(400, 400),
+                                              "<script>var data_clockin = {};var data_clockout = {};</script>".format(
+                                                  res_timestamp['clock_in'], res_timestamp['clock_out']),
+                                              "<script>",
+                                              js_timestamp,
+                                              "</script></body></html>"])
+                    html_everyday_hour = "".join([html_head.format(400, 400),
+                                                  "<script>var data = {};</script>".format(res_everyday_hour),
+                                                  "<script>",
+                                                  js_everyday_hour,
+                                                  "</script></body></html>"])
+                else:  # 全体考勤页面
+                    data = None
+                    res_location = conn.GetClockInOrOutCountEachHourRequest(data)
+                    data = {}
+                    res_clockin_today = conn.GetClockInRateTodayRequest(data)
+                    conn.CloseChannel()
+                    # 创建js文件
+                    with open('./ui_design/js/html_model.html', 'r') as f:
+                        html_head = f.read()
+                    with open('./ui_design/js/aweek_every_hour_clockIn.js', 'r') as f:
+                        js_each_hour = f.read()
+                    with open('./ui_design/js/today_clockIn_rate.js', 'r') as f:
+                        js_everyday_hour = f.read()
+                    html_clock_in = "".join([html_head.format(400, 400),
+                                             "<script>var data = {};var label = {};</script>".format(
+                                                 res_location['clock_in'], '到岗人数'),
+                                             "<script>",
+                                             js_each_hour,
+                                             "</script></body></html>"])
+                    html_clock_out = "".join([html_head.format(400, 400),
+                                              "<script>var data = {};var label = {}</script>".format(
+                                                  res_location['clock_out'], '离岗人数'),
+                                              "<script>",
+                                              js_each_hour,
+                                              "</script></body></html>"])
+                    html_clock_in_rate = "".join([html_head.format(400, 400),
+                                                  "<script>var clock_in = {};var total = {}</script>".format(
+                                                      res_clockin_today['clock_in'], res_clockin_today['total']),
+                                                  "<script>",
+                                                  js_each_hour,
+                                                  "</script></body></html>"])
+                with open('./ui_design/html_cache/self_1.html', 'w') as f:
+                    f.write(html_timestamp)
+                with open('./ui_design/html_cache/self_2.html', 'w') as f:
+                    f.write(html_everyday_hour)
+            except Exception as e:
+                print(e)
+                warning = Alert(words=u" 统计失败！")
+                warning.exec_()
+            finally:
+                self.close()
+
+        def initCharts(self):
+            """
+            初始化图表
+            :return:
+            """
+
+            current_path = os.getcwd()  # 当前目录
+            # 加载网页
+            self.chart1_url.setUrl(
+                "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\',
+                                                                                                          '/') if UserType(
+                    self.user_type) == UserType.Student else
+                "file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_1.html").replace('\\',
+                                                                                                         '/')
+            )
+            self.chart1.setUrl(self.chart1_url)
+            self.chart2_url.setUrl(
+                "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\',
+                                                                                                          '/') if UserType(
+                    self.user_type) == UserType.Student else
+                "file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_2.html").replace('\\',
+                                                                                                         '/')
+            )
+            self.chart2.setUrl(self.chart2_url)
 
 
 if __name__ == "__main__":

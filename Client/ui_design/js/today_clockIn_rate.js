@@ -1,5 +1,7 @@
+//var clock_in = 3;
+//var total = 40;
 var rate = clock_in / total;
-var data = [rate, rate-0.1, rate-0.15, rate-0.25];
+var data = [rate, rate*0.8, rate*0.75, rate*0.45];
 var option = {
 series: [{
     type: 'liquidFill',

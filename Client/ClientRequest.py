@@ -226,7 +226,7 @@ class CR(object):
             raise Exception('fail to request!')
 
     # 考勤相关
-    def GetWorkHourEverYDayRequest(self, data):
+    def GetWorkHourEveryDayRequest(self, data):
         """
         获取本周每日工作时长
         :param data:数据
@@ -256,6 +256,42 @@ class CR(object):
             res = pickle.loads(response.result)
             if res['operation'] == ClientRequest.Failure:
                 raise Exception('fail to get timestamp!')
+            elif res['operation'] == ClientRequest.Success:
+                return res['result']
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('fail to request!')
+
+    def GetClockInOrOutCountEachHourRequest(self, data):
+        """
+        获取本周上岗和离岗每个时间段的人数
+        :param data:数据->None
+        :return: res['result'] -> [[星期,小时,人数]：图表坐标点,...]
+        """
+
+        try:
+            response = self.stub.GetClockInOrOutCountEachHour(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            if res['operation'] == ClientRequest.Failure:
+                raise Exception('fail to get count each hour!')
+            elif res['operation'] == ClientRequest.Success:
+                return res['result']
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('fail to request!')
+
+    def GetClockInRateTodayRequest(self, data):
+        """
+        获取今日到岗人数
+        :param data:数据
+        :return: res['result'] -> {'clock_in':, 'total': }
+        """
+
+        try:
+            response = self.stub.GetClockInOrOutCountEachHour(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            if res['operation'] == ClientRequest.Failure:
+                raise Exception('fail to get count each hour!')
             elif res['operation'] == ClientRequest.Success:
                 return res['result']
         except Exception as e:  # 界面捕捉异常并弹出警告窗口
