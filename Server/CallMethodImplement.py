@@ -31,6 +31,7 @@ class CallMethodImplement(object):
         :param data:　请求参数
         :return:
         """
+
         d = dict()
         d['operation'] = ClientRequest.Failure
         d['exception'] = Exception('fail to ...')
@@ -73,7 +74,7 @@ class CallMethodImplement(object):
             res['operation'] = self.__operation_mapper[res['operation']]
             return res
         except Exception as e:
-            return {'operation':ClientRequest.Failure, 'exception':e, 'result': None}
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
     @log
     def VoidTheNote(self, ip, data):
@@ -91,10 +92,10 @@ class CallMethodImplement(object):
             res['operation'] = self.__operation_mapper[res['operation']]
             return res
         except Exception as e:
-            return {'operation':ClientRequest.Failure, 'exception':e, 'result': None}
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
     @log
-    def InsertAObject(self ,ip, data):
+    def InsertAObject(self, ip, data):
         """
         添加一则新对象
         :param ip: 用于识别客户端
@@ -202,7 +203,7 @@ class CallMethodImplement(object):
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
-    # @log
+    @log
     def GetWorkHourEverYDay(self, ip, data):
         """
         获取本周工作时长
@@ -239,7 +240,59 @@ class CallMethodImplement(object):
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
+    @log
+    def GetClockInOrOutCountEachHour(self, ip, data):
+        """
+        获取本周每日每个时刻上岗和离岗人数
+        :param ip: 用于识别客户端
+        :param data: 请求参数
+        :return: dict{'operation': , 'exception': , 'result': }
+        """
+
+        try:
+            conn = DBC(client_ip=ip)
+            res_clock_in = conn.special_search(self.__obj2table_mapper[data['obj']], 'all_each_time_count', {'record_type': AttendanceType.ClockIn.value})
+            res_clock_out = conn.special_search(self.__obj2table_mapper[data['obj']], 'all_each_time_count', {'record_type': AttendanceType.ClockIn.value})
+            if res_clock_in['operation'] == DBOperation.Failure or res_clock_out['operation'] == DBOperation.Failure:  # 其一操作失败
+                res = {'operation': ClientRequest.Failure, 'exception': Exception('fail to get the clock in and out count each hour'), 'result': None}
+            else:  # 双双成功
+                hour_mapper = {'00': 0, '01': 1, '02': 2, '03': 3, '04': 4, '05': 5, '06': 6,
+                               '07': 7, '08': 8, '09': 9, '10': 10, '11': 11,
+                               '12': 12, '13': 13, '14': 14, '15': 15, '16': 16, '17': 17,
+                               '18': 18, '19': 19, '20': 20, '21': 21, '22': 22, '23': 23}
+                clock_in = res_clock_in['result']
+                clock_out = res_clock_out['result']
+                clock_in_list = map(lambda x: [x[0], hour_mapper[x[1]], x[2]], clock_in)
+                clock_out_list = map(lambda x: [x[0], hour_mapper[x[1]], x[2]], clock_out)
+                res = {'operation': ClientRequest.Success, 'exception': None, 'result': {'clock_in': clock_in_list, 'clock_out': clock_out_list}}
+            return res
+        except Exception as e:
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+
+    @log
+    def GetClockInRateToday(self, ip, data):
+        """
+        获取今日上岗人数和工作室总人数以计算出勤率
+        :param ip: 用于识别客户端
+        :param data: 请求参数
+        :return: dict{'operation': , 'exception': , 'result': }
+        """
+
+        try:
+            conn = DBC(client_ip=ip)
+            res_today = conn.special_search(self.__obj2table_mapper[data['obj']], 'today_clockin_count')  # _type中是字典与sql_mapper中名称必须一致
+            res_total = conn.count_record(self.__obj2table_mapper['user'], {'user_type': UserType.Student.value})
+            if res_today['operation'] == DBOperation.Failure or res_total['operation'] == DBOperation.Failure:
+                res = {'operation': ClientRequest.Failure, 'exception': Exception('fail to get the clock in rate today'), 'result': None}
+            else:
+                clock_in = res_today['result'][0][0]
+                total = res_total['result']
+                res = {'operation': ClientRequest.Success, 'exception': None, 'result': {'clock_in': clock_in, 'total': total}}
+            return res
+        except Exception as e:
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+
 
 # test
 if __name__ == '__main__':
-    print(CallMethodImplement().GetWorkHourEverYDay(ip='127.0.0.1', data={'user_id': 201610414206, 'obj': 'attendance'}))
+    print(CallMethodImplement().GetClockInRateToday(ip='127.0.0.1', data={'obj': 'attendance'}))

@@ -238,7 +238,6 @@ class ManagementWindow(QDialog):
     def init_ui(self):
         """
         初始化界面
-        :param user_type:用户类型 学生０　教师１
         :return: None
         """
 
@@ -261,8 +260,8 @@ class ManagementWindow(QDialog):
             bt.setStyleSheet("QPushButton{"
                              "                   background-color:rgba(255,255,255,255);"
                              "                   border-style:outset;                  "
-                             "                   border-width:2px;                     "
-                             "                   border-radius:20px;                "
+                             "                   border-width:3px;                     "
+                             "                   border-radius:18px;                "
                              "                   border-color:rgba(255,165,0,100);   "
                              "                   font:bold 23px;                    "
                              "                   color:rgba(255,165,0,130);                "
@@ -843,23 +842,29 @@ class AttendanceChart(QWidget):
         QWidget.__init__(self)
         # 布局
         self.lay = QGridLayout()
+
         # 添加控件
         def setWeb(obj):
             obj.page().mainFrame().setScrollBarPolicy(Qt.Horizontal, Qt.ScrollBarAlwaysOff)  # 取消滚动条
             obj.page().mainFrame().setScrollBarPolicy(Qt.Vertical, Qt.ScrollBarAlwaysOff)
-            obj.setFixedSize(500, 500)
+            obj.setFixedSize(800, 400)
 
         self.chart1 = QWebView()
         self.chart1_url = QUrl()
         self.chart2 = QWebView()
         self.chart2_url = QUrl()
+        self.chart3 = QWebView()
+        self.chart3_url = QUrl()
         setWeb(self.chart1)
         setWeb(self.chart2)
+        setWeb(self.chart3)
         self.chart1.load(self.chart1_url)
         self.chart2.load(self.chart2_url)
+        self.chart3.load(self.chart3_url)
 
-        self.lay.addWidget(self.chart1)
-        self.lay.addWidget(self.chart2)
+        self.lay.addWidget(self.chart1, 0, 0, 2, 2)
+        self.lay.addWidget(self.chart2, 2, 0, 2, 2)
+        self.lay.addWidget(self.chart3, 2, 2, 2, 2)
         # 最后self添加布局
         self.setLayout(self.lay)
 

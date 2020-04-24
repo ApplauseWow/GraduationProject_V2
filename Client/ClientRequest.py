@@ -288,10 +288,10 @@ class CR(object):
         """
 
         try:
-            response = self.stub.GetClockInOrOutCountEachHour(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            response = self.stub.GetClockInRateToday(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
             res = pickle.loads(response.result)
             if res['operation'] == ClientRequest.Failure:
-                raise Exception('fail to get count each hour!')
+                raise Exception('fail to get clock in rate!')
             elif res['operation'] == ClientRequest.Success:
                 return res['result']
         except Exception as e:  # 界面捕捉异常并弹出警告窗口
@@ -302,6 +302,3 @@ class CR(object):
 if __name__ == '__main__':
     conn = CR()
     print conn.GetAllNotesRequest()
-
-
-

@@ -84,6 +84,16 @@ class BackendStub(object):
                 request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
                 response_deserializer=correspondence__pb2.ResponseStruct.FromString,
                 )
+        self.GetClockInOrOutCountEachHour = channel.unary_unary(
+                '/Backend/GetClockInOrOutCountEachHour',
+                request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
+                response_deserializer=correspondence__pb2.ResponseStruct.FromString,
+                )
+        self.GetClockInRateToday = channel.unary_unary(
+                '/Backend/GetClockInRateToday',
+                request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
+                response_deserializer=correspondence__pb2.ResponseStruct.FromString,
+                )
 
 
 class BackendServicer(object):
@@ -180,6 +190,18 @@ class BackendServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetClockInOrOutCountEachHour(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetClockInRateToday(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_BackendServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -250,6 +272,16 @@ def add_BackendServicer_to_server(servicer, server):
             ),
             'GetClockInOrOutTimeStamp': grpc.unary_unary_rpc_method_handler(
                     servicer.GetClockInOrOutTimeStamp,
+                    request_deserializer=correspondence__pb2.RequestStruct.FromString,
+                    response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
+            ),
+            'GetClockInOrOutCountEachHour': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetClockInOrOutCountEachHour,
+                    request_deserializer=correspondence__pb2.RequestStruct.FromString,
+                    response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
+            ),
+            'GetClockInRateToday': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetClockInRateToday,
                     request_deserializer=correspondence__pb2.RequestStruct.FromString,
                     response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
             ),
@@ -482,6 +514,38 @@ class Backend(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Backend/GetClockInOrOutTimeStamp',
+            correspondence__pb2.RequestStruct.SerializeToString,
+            correspondence__pb2.ResponseStruct.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetClockInOrOutCountEachHour(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Backend/GetClockInOrOutCountEachHour',
+            correspondence__pb2.RequestStruct.SerializeToString,
+            correspondence__pb2.ResponseStruct.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetClockInRateToday(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Backend/GetClockInRateToday',
             correspondence__pb2.RequestStruct.SerializeToString,
             correspondence__pb2.ResponseStruct.FromString,
             options, channel_credentials,

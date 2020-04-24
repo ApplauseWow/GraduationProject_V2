@@ -27,7 +27,8 @@ service Backend {
     // ->->考勤统计相关接口
     rpc GetWorkHourEverYDay(RequestStruct) returns (ResponseStruct) {} // 教师学生共用
     rpc GetClockInOrOutTimeStamp(RequestStruct) returns (ResponseStruct) {} // 教师学生共用
-
+    rpc GetClockInOrOutCountEachHour(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc GetClockInRateToday(RequestStruct) returns (ResponseStruct) {} // 教师专用
 }
 
 

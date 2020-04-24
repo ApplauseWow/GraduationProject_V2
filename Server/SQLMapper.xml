@@ -4,6 +4,7 @@
         <delete>DELETE FROM `user_info` WHERE `user_id`=%(user_id)s;</delete>
         <update>UPDATE `user_info` SET `major`=%(major)s, `grade`=%(grade)s, `_class`=%(_class)s, `user_type`=%(user_type)s, `tel`=%(tel)s, `email`=%(email)s WHERE `user_id`=%(user_id)s;</update>
         <limited_search>SELECT * FROM `user_info` WHERE `user_id`=%(user_id)s;</limited_search>
+        <limited_count>SELECT COUNT(*) FROM `user_info` WHERE `user_type`=%(user_type)s; </limited_count>
     </table>
     <table name="achievement_info">
         <insert>INSERT INTO `achievement_info` ( `user_id`, `ach_name`, `ach_type`) VALUES (%(user_id)s, %(ach_name)s, %(ach_type)s);</insert>
@@ -14,13 +15,11 @@
          <delete>DELETE FROM `attendance_record` WHERE `record_id`=%(record_id)s;</delete>
         <!--本周每日每时段上岗/离岗人数-->
         <all_each_time_count>
-            SELECT _week, each_hour, count(each_hour) as total
-            FROM (select weekday(date_time) as _week, date_format(date_time,'%H') as each_hour
+            select weekday(date_time) as _week, date_format(date_time,'%%H') as each_hour, count(weekday(date_time)) as num
             from `attendance_record`
             where `record_type` = %(record_type)s and date_time between current_date()-weekday(current_date()) and current_date() + 7 - weekday(current_date())
-            GROUP BY each_hour, _week, user_id
-            ORDER BY date_time asc) as t
-            GROUP BY _week, each_hour;
+            GROUP BY _week, each_hour
+            ORDER BY date_time asc
         </all_each_time_count>
         <!--今日上岗人数-->
         <today_clockin_count>

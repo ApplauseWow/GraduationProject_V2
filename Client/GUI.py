@@ -262,12 +262,13 @@ class Management(ManagementWindow):
     def __init__(self, user_id, user_type):
         ManagementWindow.__init__(self, user_id, user_type)
         # 添加顺序一定按照按钮顺序
-        self.page_one = self.ShowUsers(user_id=user_id, user_type=user_type) if UserType(
-            user_type) == UserType.Teacher else self.ShowMyself(user_id=user_id, user_type=user_type)
+        self.page_one = self.ShowUsers(user_id=user_id, user_type=user_type) if UserType(user_type) == UserType.Teacher else self.ShowMyself(user_id=user_id, user_type=user_type)
         self.page_two = self.ShowNotes(user_id=user_id, user_type=user_type)
+        self.page_three = self.ShowAttendanceCharts(user_id=user_id, user_type=user_type)
 
         self.right_layout.addWidget(self.page_one)
         self.right_layout.addWidget(self.page_two)
+        self.right_layout.addWidget(self.page_three)
 
         self.setUpConnect()
 
@@ -787,7 +788,7 @@ class Management(ManagementWindow):
                 try:
                     # 查询数据
                     conn = CR()
-                    res_everyday_hour = conn.GetWorkHourEverYDayRequest(data)
+                    res_everyday_hour = conn.GetWorkHourEveryDayRequest(data)
                     res_timestamp = conn.GetClockInOrOutTimeStampRequest(data)
                     conn.CloseChannel()
                     # 创建js文件
@@ -827,8 +828,6 @@ class Management(ManagementWindow):
                     print(e)
                     warning = Alert(words=u" 统计失败！")
                     warning.exec_()
-                finally:
-                    self.close()
 
             def CreateNewUser(self):
                 """
@@ -1068,6 +1067,7 @@ class Management(ManagementWindow):
             AttendanceChart.__init__(self)
             self.user_id = user_id
             self.user_type = user_type
+            self.initPage()
 
         def initPage(self):
             """
@@ -1075,9 +1075,9 @@ class Management(ManagementWindow):
             :return: None
             """
 
-            pass
+            self.initCharts()
 
-        def createHTML(self):
+        def initCharts(self):
             """
             创建图表页面
             :return:
@@ -1109,10 +1109,13 @@ class Management(ManagementWindow):
                                                   "<script>",
                                                   js_everyday_hour,
                                                   "</script></body></html>"])
+                    with open('./ui_design/html_cache/self_1.html', 'w') as f:
+                        f.write(html_timestamp)
+                    with open('./ui_design/html_cache/self_2.html', 'w') as f:
+                        f.write(html_everyday_hour)
                 else:  # 全体考勤页面
-                    data = None
-                    res_location = conn.GetClockInOrOutCountEachHourRequest(data)
                     data = {}
+                    res_location = conn.GetClockInOrOutCountEachHourRequest(data)
                     res_clockin_today = conn.GetClockInRateTodayRequest(data)
                     conn.CloseChannel()
                     # 创建js文件
@@ -1121,65 +1124,58 @@ class Management(ManagementWindow):
                     with open('./ui_design/js/aweek_every_hour_clockIn.js', 'r') as f:
                         js_each_hour = f.read()
                     with open('./ui_design/js/today_clockIn_rate.js', 'r') as f:
-                        js_everyday_hour = f.read()
-                    html_clock_in = "".join([html_head.format(400, 400),
-                                             "<script>var data = {};var label = {};</script>".format(
+                        js_today_rate = f.read()
+                    html_clock_in = "".join([html_head.format(800, 400),
+                                             "<script>var data = {};var label = '{}';</script>".format(
                                                  res_location['clock_in'], '到岗人数'),
                                              "<script>",
                                              js_each_hour,
                                              "</script></body></html>"])
-                    html_clock_out = "".join([html_head.format(400, 400),
-                                              "<script>var data = {};var label = {}</script>".format(
+                    html_clock_out = "".join([html_head.format(800, 400),
+                                              "<script>var data = {};var label = '{}'</script>".format(
                                                   res_location['clock_out'], '离岗人数'),
                                               "<script>",
                                               js_each_hour,
                                               "</script></body></html>"])
                     html_clock_in_rate = "".join([html_head.format(400, 400),
-                                                  "<script>var clock_in = {};var total = {}</script>".format(
+                                                  "<script type='text/javascript' src='../js/echarts-liquidfill.js'></script>",
+                                                  "<script>var clock_in = {};var total = {};</script>".format(
                                                       res_clockin_today['clock_in'], res_clockin_today['total']),
                                                   "<script>",
-                                                  js_each_hour,
+                                                  js_today_rate,
                                                   "</script></body></html>"])
-                with open('./ui_design/html_cache/self_1.html', 'w') as f:
-                    f.write(html_timestamp)
-                with open('./ui_design/html_cache/self_2.html', 'w') as f:
-                    f.write(html_everyday_hour)
+                    with open('./ui_design/html_cache/all_1.html', 'w') as f:
+                        f.write(html_clock_in)
+                    with open('./ui_design/html_cache/all_2.html', 'w') as f:
+                        f.write(html_clock_out)
+                    with open('./ui_design/html_cache/all_3.html', 'w') as f:
+                        f.write(html_clock_in_rate)
+
+                current_path = os.getcwd()  # 当前目录
+                # 加载网页
+                if UserType(self.user_type) == UserType.Teacher:
+                    self.chart1_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_3.html").replace('\\', '/'))
+                    self.chart1.setUrl(self.chart1_url)
+                    self.chart2_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_1.html").replace('\\', '/'))
+                    self.chart2.setUrl(self.chart2_url)
+                    self.chart3_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_2.html").replace('\\', '/'))
+                    self.chart3.setUrl(self.chart3_url)
+                else:
+                    self.chart1_url.setUrl(
+                        "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\', '/'))
+                    self.chart1.setUrl(self.chart1_url)
+                    self.chart2_url.setUrl(
+                        "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\', '/'))
+                    self.chart2.setUrl(self.chart2_url)
             except Exception as e:
                 print(e)
                 warning = Alert(words=u" 统计失败！")
                 warning.exec_()
-            finally:
-                self.close()
-
-        def initCharts(self):
-            """
-            初始化图表
-            :return:
-            """
-
-            current_path = os.getcwd()  # 当前目录
-            # 加载网页
-            self.chart1_url.setUrl(
-                "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\',
-                                                                                                          '/') if UserType(
-                    self.user_type) == UserType.Student else
-                "file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_1.html").replace('\\',
-                                                                                                         '/')
-            )
-            self.chart1.setUrl(self.chart1_url)
-            self.chart2_url.setUrl(
-                "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\',
-                                                                                                          '/') if UserType(
-                    self.user_type) == UserType.Student else
-                "file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_2.html").replace('\\',
-                                                                                                         '/')
-            )
-            self.chart2.setUrl(self.chart2_url)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win_ = Management(201610414206, 1)
+    win_ = Management(201610414206, 0)
     win_.show()
     # win1 = SysHome()
     # win2 = MyInfo()
