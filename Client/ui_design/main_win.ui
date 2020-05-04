@@ -217,6 +217,123 @@
      <string>人脸识别</string>
     </property>
    </widget>
+   <widget class="QLCDNumber" name="clock">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>580</y>
+      <width>64</width>
+      <height>23</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="frame">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>851</width>
+      <height>681</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="quit">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>490</y>
+      <width>199</width>
+      <height>46</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);/
+                   border-style:outset;                  
+                   border-width:4px;                     
+                   border-radius:10px;                
+                   border-color:rgba(255,255,255,30);   
+                   font:bold 10px;                    
+                   color:rgba(0,0,0,100);                
+                   padding:6px;                       
+                   }
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+    </property>
+    <property name="text">
+     <string>退出系统</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="open_camera">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>220</y>
+      <width>199</width>
+      <height>46</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton{
+                   background-color:rgba(100,225,100,30);/
+                   border-style:outset;                  
+                   border-width:4px;                     
+                   border-radius:10px;                
+                   border-color:rgba(255,255,255,30);   
+                   font:bold 10px;                    
+                   color:rgba(0,0,0,100);                
+                   padding:6px;                       
+                   }
+                   QPushButton:pressed{
+                   background-color:rgba(100,255,100,200);
+                   border-color:rgba(255,255,255,30);
+                   border-style:inset;
+                   color:rgba(0,0,0,100);
+                   }
+                   QPushButton:hover{
+                   background-color:rgba(100,255,100,100);
+                   border-color:rgba(255,255,255,200);
+                   color:rgba(0,0,0,200);
+                   }</string>
+    </property>
+    <property name="text">
+     <string>打开摄像头</string>
+    </property>
+   </widget>
+   <zorder>frame</zorder>
+   <zorder>face_login</zorder>
+   <zorder>att_rec</zorder>
+   <zorder>face_reg</zorder>
+   <zorder>face_rec</zorder>
+   <zorder>quit</zorder>
+   <zorder>open_camera</zorder>
+   <zorder>clock</zorder>
   </widget>
  </widget>
  <resources/>

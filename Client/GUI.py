@@ -3,7 +3,9 @@ import sys
 import time
 import datetime
 import os
+from random import randint
 from PyQt5.QtGui import QImage
+from cv2.cv2 import VideoCapture, resize, cvtColor, COLOR_BGR2RGB, flip
 
 from ui_design.ui_finish import *
 from TypesEnum import *
@@ -196,10 +198,13 @@ class Page(Pagination):
         添加操作按钮，待重写
         :return:
         """
+
         widget = QWidget()
+        hLayout = QHBoxLayout()
+
         bt = OperationButtonInTable(name=u'删除')
         bt.clicked.connect(lambda: self.operationOnBtClicked(primary_key))
-        hLayout = QHBoxLayout()
+
         hLayout.addWidget(bt)
         widget.setLayout(hLayout)
         return widget
@@ -222,12 +227,27 @@ class SysHome(MainWindow):
 
     def __init__(self):
         super(SysHome, self).__init__()
+        self.show_register = self.Register()  # 注册窗口
+        self.show_my_info = self.MyInfo()  # 识别成功后个人信息窗口
 
-        # 设置定时器
+        # 设置时间定时器
         self.timer_clock = QTimer()
         self.timer_clock.setInterval(1000)
-        self.timer_clock.start()
         self.timer_clock.timeout.connect(self.update_time)
+        self.timer_clock.start()
+
+        # 设置摄像头
+        self.camera = VideoCapture()  # 摄像头
+        self.camera_timer = QTimer()  # 摄像头更新定时器
+        self.camera_timer.timeout.connect(self.show_camera)
+        self.openCamera()
+
+        # 按钮绑定
+        self.quit.clicked.connect(self.close)
+        self.open_camera.clicked.connect(self.openOrCloseCamera)
+        self.face_login.clicked.connect(self.login)
+        self.face_rec.clicked.connect(self.recognize)
+        self.face_reg.clicked.connect(self.register)
 
     def update_time(self):
         """
@@ -236,6 +256,110 @@ class SysHome(MainWindow):
         """
 
         self.clock.display(time.strftime("%X", time.localtime()))
+
+    def show_camera(self):
+        """
+        显示视频
+        :return:
+        """
+
+        flag, image = self.camera.read()
+        if flag:
+            image = flip(image, 1)
+            show = resize(image, (self.frame.width(), self.frame.height()))
+            show = cvtColor(show, COLOR_BGR2RGB)  # opencv读取BGR，pyqt需要RGB
+            showImage = QImage(show.data, show.shape[1], show.shape[0], QImage.Format_RGB888)
+            self.frame.setPixmap(QPixmap.fromImage(showImage))
+        else:
+            self.closeCamera()
+            warning = Alert("读取图像失败")
+            warning.exec_()
+
+    def openOrCloseCamera(self):
+        """
+        打开或关闭摄像头
+        :return:
+        """
+
+        if not self.camera_timer.isActive():  # 已关闭，打开摄像头
+            self.openCamera()
+        else:  # 已开启，关闭摄像头
+            self.closeCamera()
+
+    def openCamera(self):
+        """
+        打开摄像头
+        :return:
+        """
+
+        try:
+            for device_num in range(3):
+                if self.camera.open(device_num):  # 摄像头可用
+                    self.camera_timer.start(30)
+                    self.open_camera.setText('关闭摄像头')
+                    self.clock.raise_()
+                    break
+            else:  # 摄像头不可用
+                raise Exception("no available camera!")
+        except Exception as e:
+            print(e)
+            self.clock.raise_()
+            background_img = {0: './ui_design/no_camera1.jpg',
+                              1: './ui_design/no_camera2.jpg'}
+            self.frame.setPixmap(QPixmap(background_img[randint(0, 1)]))
+            warning = Alert("没有可用摄像头")
+            warning.exec_()
+
+    def closeCamera(self):
+        """
+        关闭摄像头
+        :return:
+        """
+
+        self.camera_timer.stop()  # 停止计时
+        self.camera.release()  # 释放摄像头
+        self.frame.setPixmap(QPixmap('./ui_design/close_camera.jpg').scaled(self.frame.width(), self.frame.height()))
+        self.open_camera.setText('打开摄像头')
+
+    def saveImageCache(self):
+        """
+        存图片缓存
+        :return:
+        """
+
+        if self.camera.isOpened():  # 已打开
+            flag, image = self.camera.read()
+            if flag:
+                cache = resize(image, (0, 0), fx=0.35, fy=0.35)
+                return cache
+            else:
+                raise Exception('fail to read image!')
+        else:
+            raise Exception('no opened camera!')
+
+    def login(self):
+        """
+        人脸登录
+        :return:
+        """
+
+        pass
+
+    def register(self):
+        """
+        人脸注册
+        :return:
+        """
+
+        pass
+
+    def recognize(self):
+        """
+        人脸识别
+        :return:
+        """
+
+        pass
 
     class Register(RegisterWindow):
         """
@@ -1172,18 +1296,20 @@ class Management(ManagementWindow):
                 warning = Alert(words=u" 统计失败！")
                 warning.exec_()
 
+    # ---------------------ShowAttendanceCharts  complete------------------------
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win_ = Management(201610414206, 1)
-    win_.show()
-    # win1 = SysHome()
+    # win_ = Management(201610414206, 1)
+    # win_.show()
+    win1 = SysHome()
     # win2 = MyInfo()
-    # win3 = Register()
+    # win3 = SysHome().Register()
 
     # win4 = Alert()
     #
-    # win1.show()
+    win1.show()
     # win2.show()
     # win3.show()
     # win4.show()

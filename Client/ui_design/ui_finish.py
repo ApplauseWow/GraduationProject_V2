@@ -28,26 +28,46 @@ class MainWindow(Ui_MainWindow, QMainWindow):
         desk_width = desktop.screenGeometry().width()
         desk_height = desktop.screenGeometry().height()
 
-        # 摄像头图像设置
-        self.frame = QLabel()
-        self.frame.setGeometry(0, 0, desk_width, desk_height)
-
         self.setupUi(self)
 
+        # 摄像头图像设置
+        self.frame.setGeometry(0, 0, desk_width, desk_height)
+        self.frame.setStyleSheet("background-color:white;")
+
         # 按钮定位
-        self.buttons = [self.att_rec, self.face_login, self.face_rec, self.face_reg]
+        self.buttons = [self.open_camera, self.att_rec, self.face_login, self.face_rec, self.face_reg, self.quit]
         map(lambda x: x.move(desk_width * 0.80, desk_height * 0.33 + self.buttons.index(x) * (x.height() + 8)),
             self.buttons)
         map(lambda x: x.raise_(), self.buttons)
+        map(lambda x: x.setStyleSheet("QPushButton{"
+                                      "                   background-color:rgba(255,165,0,30);"
+                                      "                   border-style:outset;                  "
+                                      "                   border-width:4px;                     "
+                                      "                   border-radius:10px;                "
+                                      "                   border-color:rgba(255,255,255,30);   "
+                                      "                   font:bold 18px;                    "
+                                      "                   color:rgba(0,0,0,100);                "
+                                      "                   padding:6px;                       "
+                                      "                   }"
+                                      "                   QPushButton:pressed{"
+                                      "                   background-color:rgba(255,165,0,200);"
+                                      "                   border-color:rgba(255,255,255,30);"
+                                      "                   border-style:inset;"
+                                      "                   color:rgba(0,0,0,100);"
+                                      "                   }"
+                                      "                   QPushButton:hover{"
+                                      "                   background-color:rgba(255,165,0,100);"
+                                      "                   border-color:rgba(255,255,255,200);"
+                                      "                   color:rgba(0,0,0,200);"
+                                      "                   }"), self.buttons)
 
         # 设置时钟
-        self.clock = QLCDNumber(self)
         self.clock.setDigitCount(10)
         self.clock.setMode(QLCDNumber.Dec)
         self.clock.setSegmentStyle(QLCDNumber.Flat)
         self.clock.display(time.strftime("%X", time.localtime()))
         self.clock.setStyleSheet("QLCDNumber{color:rgba(255,0,0,100); border:None;}")
-        self.clock.resize(280, 120)
+        self.clock.resize(380, 220)
         self.clock.move(50, desk_height - 30 - self.clock.height())
 
         self.setWindowFlags(Qt.FramelessWindowHint)  # 隐藏窗口
@@ -158,15 +178,35 @@ class RegisterWindow(QDialog, Ui_register_win):
                                       "                   }"), buttons)
 
         # 设置进度条
-        self.process.setStyleSheet("QProgressBar "
-                                   "{border: 2px solid rgba(255,165,0,255);"
-                                   "border-radius: 5px;"
+        self.process.setStyleSheet("QProgressBar{"
+                                   "border: 2px solid rgba(255,165,0,255);"
+                                   "border-radius: 4px;"
                                    "text-align: center;}"
-                                   "QProgressBar::chunk "
-                                   "{border: 1px solid rgba(255, 255, 255, 255);"
+                                   "QProgressBar::chunk{"
+                                   "border: 3px solid rgba(255, 255, 255, 255);"
                                    "border-radius:4px;"
                                    "width: 15px;"
                                    "background:rgba(255,165,0,150);}")
+
+        # 设置照片
+        self.capture_pic.setStyleSheet("""
+            QLabel{
+                border:3px solid rgba(255,165,0,255);
+                border-radius: 4px;
+            }
+        """)
+
+        self.Label.setStyleSheet("QLabel{"
+                                 "                   background-color:rgba(255,165,0,150);"
+                                 "                   border-style:outset;                  "
+                                 "                   border-width:2px;                     "
+                                 "                   border-radius:10px;                "
+                                 "                   border-color:rgba(255,255,255,30);   "
+                                 "                   font:bold 12px;                    "
+                                 "                   color:rgb(255,255,255);                "
+                                 "                   padding:6px; "
+                                 "                   text-align: center;                      "
+                                 "                   }")
         self.process.setMinimum(0)
         self.process.setMaximum(100)
         self.process.hide()
@@ -1194,6 +1234,6 @@ if __name__ == '__main__':
     import sys
 
     app = QApplication(sys.argv)
-    win = MyselfInfo()
+    win = InfoWindow()
     win.show()
     sys.exit(app.exec_())
