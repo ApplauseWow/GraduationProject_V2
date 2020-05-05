@@ -4,8 +4,10 @@ import time
 import datetime
 import os
 from random import randint
+
+from PyQt5.QtCore import QThread
 from PyQt5.QtGui import QImage
-from cv2.cv2 import VideoCapture, resize, cvtColor, COLOR_BGR2RGB, flip
+from cv2.cv2 import VideoCapture, resize, cvtColor, COLOR_BGR2RGB, flip, imwrite
 
 from ui_design.ui_finish import *
 from TypesEnum import *
@@ -30,17 +32,9 @@ class Alert(WarningWindow):
             self.warning.setPixmap(self.pix)
         # 设置定时器
         self.time_count = QTimer()
+        self.time_count.timeout.connect(self.close)
         self.time_count.setInterval(800)
         self.time_count.start()
-        self.time_count.timeout.connect(self.timeout_close)
-
-    def timeout_close(self):
-        """
-        倒计时关闭此窗口
-        :return: None
-        """
-
-        self.close()
 
 
 class Page(Pagination):
@@ -227,8 +221,9 @@ class SysHome(MainWindow):
 
     def __init__(self):
         super(SysHome, self).__init__()
-        self.show_register = self.Register()  # 注册窗口
-        self.show_my_info = self.MyInfo()  # 识别成功后个人信息窗口
+        self.show_register = self.Register()
+        self.show_my_info = self.MyInfo()
+        self.show_attendance = self.MyInfo()
 
         # 设置时间定时器
         self.timer_clock = QTimer()
@@ -248,6 +243,9 @@ class SysHome(MainWindow):
         self.face_login.clicked.connect(self.login)
         self.face_rec.clicked.connect(self.recognize)
         self.face_reg.clicked.connect(self.register)
+
+        # 信号绑定
+        self.show_register.resetCapturePicSignal.connect(self.resetRegisterImageCache)
 
     def update_time(self):
         """
@@ -333,9 +331,9 @@ class SysHome(MainWindow):
                 cache = resize(image, (0, 0), fx=0.35, fy=0.35)
                 return cache
             else:
-                raise Exception('fail to read image!')
+                raise Exception('抓拍图像失败')
         else:
-            raise Exception('no opened camera!')
+            raise Exception('没有可用摄像头')
 
     def login(self):
         """
@@ -343,7 +341,28 @@ class SysHome(MainWindow):
         :return:
         """
 
-        pass
+        try:
+            # 抓拍
+            cache = self.saveImageCache()
+            try:
+                # 请求通过人脸识别验证身份
+                data = {'image_cache': cache}
+                conn = CR()
+                res = conn.CheckIdentityByFaceRequest(data)  # 匹配信息，返回姓名、ID、用户类型
+                conn.CloseChannel()
+                # 获取身份信息
+                show_management = Management(user_id=res['user_id'], user_type=res['user_type'])
+                self.camera_timer.stop()
+                show_management.exec_()
+                self.camera_timer.start()
+            except Exception as e:
+                print(e)
+                warning = Alert(str(e))
+                warning.exec_()
+        except Exception as e:
+            print(e)
+            warning = Alert(str(e))
+            warning.exec_()
 
     def register(self):
         """
@@ -351,7 +370,33 @@ class SysHome(MainWindow):
         :return:
         """
 
-        pass
+        try:
+            # 抓拍
+            cache = self.saveImageCache()
+            # 设置
+            self.show_register.getImageCache(cache)
+            # 显示窗口
+            self.show_register.exec_()
+        except Exception as e:
+            print(e)
+            warning = Alert(str(e))
+            warning.exec_()
+
+    def resetRegisterImageCache(self):
+        """
+        重新拍照
+        :return:
+        """
+
+        try:
+            # 抓拍
+            cache = self.saveImageCache()
+            # 设置
+            self.show_register.getImageCache(cache)
+        except Exception as e:
+            print(e)
+            warning = Alert(str(e))
+            warning.exec_()
 
     def recognize(self):
         """
@@ -359,15 +404,169 @@ class SysHome(MainWindow):
         :return:
         """
 
-        pass
+        try:
+            # 抓拍
+            cache = self.saveImageCache()
+            # 请求通过人脸识别验证身份
+            data = {'image_cache': cache}
+
+            class Worker(QThread):
+
+                signal = pyqtSignal(dict)
+
+                def __init__(self, req_data):
+                    QThread.__init__(self)
+                    self.data = req_data
+
+                def run(self):
+                    try:
+                        conn = CR()
+                        res = conn.CheckIdentityByFaceRequest(self.data)  # 匹配信息，返回姓名、ID、用户类型
+                        conn.CloseChannel()
+                        self.signal.emit(res)
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(str(e))
+                        warning.exec_()
+                    finally:  # 退出线程，没有exit信号不然会一直守护
+                        self.exit()
+
+            def afterEmit(res):
+                """
+                接收到线程信号后做出响应
+                功能：显示窗口
+                :param res: 数据 -> dict
+                :return:
+                """
+                self.show_my_info.user_name.setText(res['user_name'])
+                self.show_my_info.user_type.setText("学生" if UserType(res['user_type']) == UserType.Student else "教师")
+                self.show_my_info.user_id.setText(str(res['user_id']))
+                self.show_my_info.b_in.hide()
+                self.show_my_info.b_off.hide()
+                self.show_my_info.b_login.hide()
+                # self.show_my_info.b_wrong.hide()
+                timer = QTimer()
+                timer.timeout.connect(self.show_my_info.close)
+                timer.setInterval(3500)
+                timer.start()
+                self.show_my_info.exec_()
+
+            worker = Worker(data)
+            worker.signal.connect(afterEmit)
+            worker.start()
+            worker.exec_()  # start后守护，解决卡顿bug
+        except Exception as e:
+            print(e)
+            warning = Alert(str(e))
+            warning.exec_()
 
     class Register(RegisterWindow):
         """
         人脸注册窗口
         """
 
+        resetCapturePicSignal = pyqtSignal()
+
         def __init__(self):
             RegisterWindow.__init__(self)
+            # 待训练样本
+            self.training_pic = None
+
+            # 信号绑定
+            self.bt_again.clicked.connect(self.resetCapturePicSignal.emit)
+            self.bt_cancel.clicked.connect(self.close)
+            self.bt_reg.clicked.connect(self.register)
+
+        def getImageCache(self, cache):
+            """
+            获取图像缓存
+            :param cache:
+            :return:
+            """
+
+            self.training_pic = cache  # 待训练样本
+            # 图像处理
+            flipped_cache = flip(cache, 1)
+            colored_cache = cvtColor(flipped_cache, COLOR_BGR2RGB)  # opencv读取BGR，pyqt需要RGB
+            show_cache = QImage(colored_cache.data, colored_cache.shape[1], colored_cache.shape[0],
+                                QImage.Format_RGB888)
+            self.capture_pic.setPixmap(QPixmap.fromImage(show_cache).scaled(self.capture_pic.width(), self.capture_pic.height()))
+
+        def register(self):
+            """
+            提交信息注册
+            :return:
+            """
+
+            if self.checkInput():  # 输入正确
+                self.process.show()
+                data = {'user_id': int(self.input_id.text()), 'image_cache': self.training_pic}
+                try:
+                    self.process.setValue(20)
+                    conn = CR()
+                    self.process.setValue(55)
+                    if conn.registerRequest(data) == ClientRequest.Success:
+                        self.process.setValue(100)
+                        self.close()
+                        right = Alert("注册成功", _type='alright')
+                        right.exec_()
+                    conn.CloseChannel()
+                except Exception as e:
+                    print(e)
+                    warning = Alert(str(e))
+                    warning.exec_()
+                    self.resetProcessBar()
+
+        def resetProcessBar(self):
+            """
+            重置进度条
+            :return:
+            """
+
+            self.process.setMinimum(0)
+            self.process.setMaximum(100)
+            self.process.hide()
+
+        def checkInput(self):
+            """
+            检查非法输入
+            :return:
+            """
+
+            szText = self.input_id.text()
+            pattern = re.compile('^[0-9]+$')
+            match = pattern.match(szText)
+            if not match:
+                # QMessageBox.information(self, "提示", "请输入数字.")
+                msg = Alert(words=u"请输入数字")
+                msg.exec_()
+                return False
+            if szText == "":
+                # QMessageBox.information(self, "提示", "请输入跳转页面.")
+                msg = Alert(words=u"ID为空")
+                msg.exec_()
+                return False
+            return True
+
+        def closeEvent(self, QCloseEvent):
+            """
+            关闭窗口时
+            :param QCloseEvent:
+            :return:
+            """
+
+            self.input_id.clear()
+            self.resetProcessBar()
+
+        def keyPressEvent(self, QKeyEvent):
+            """
+            按esc关闭窗口
+            :param QKeyEvent:
+            :return:
+            """
+
+            if QKeyEvent.key() == Qt.Key_Escape:  # clicked the ESC
+                self.close()
 
     class MyInfo(InfoWindow):
         """
@@ -376,6 +575,27 @@ class SysHome(MainWindow):
 
         def __init__(self):
             InfoWindow.__init__(self)
+
+        def closeEvent(self, QCloseEvent):
+            """
+            关闭窗口时
+            :param QCloseEvent:
+            :return:
+            """
+
+            self.user_id.clear()
+            self.user_type.clear()
+            self.user_name.clear()
+
+        def keyPressEvent(self, QKeyEvent):
+            """
+            按esc关闭窗口
+            :param QKeyEvent:
+            :return:
+            """
+
+            if QKeyEvent.key() == Qt.Key_Escape:  # clicked the ESC
+                self.close()
 
 
 class Management(ManagementWindow):
