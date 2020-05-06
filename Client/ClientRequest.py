@@ -299,11 +299,12 @@ class CR(object):
             raise Exception('fail to request!')
 
     def CheckIdentityByFaceRequest(self, data):
-        # raise Exception("识别失败")
-        return {'user_id': 201610414206, 'user_type': 0, 'user_name': '郭高余'}
+        raise Exception("识别失败")
+        # return {'user_id': 201610414206, 'user_type': 0, 'user_name': '郭高余'}
 
     def registerRequest(self, data):
         return ClientRequest.Success
+        # raise Exception("注册失败")
 
 
 if __name__ == '__main__':

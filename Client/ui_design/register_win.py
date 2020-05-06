@@ -30,7 +30,7 @@ class Ui_register_win(object):
         self.capture_pic.setSizePolicy(sizePolicy)
         self.capture_pic.setObjectName("capture_pic")
         self.formLayoutWidget = QtWidgets.QWidget(register_win)
-        self.formLayoutWidget.setGeometry(QtCore.QRect(40, 190, 221, 62))
+        self.formLayoutWidget.setGeometry(QtCore.QRect(40, 190, 221, 90))
         self.formLayoutWidget.setObjectName("formLayoutWidget")
         self.formLayout = QtWidgets.QFormLayout(self.formLayoutWidget)
         self.formLayout.setLabelAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
@@ -47,7 +47,7 @@ class Ui_register_win(object):
         self.input_id.setObjectName("input_id")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.input_id)
         self.process = QtWidgets.QProgressBar(self.formLayoutWidget)
-        self.process.setProperty("value", 24)
+        self.process.setProperty("value", 0)
         self.process.setObjectName("process")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.SpanningRole, self.process)
 

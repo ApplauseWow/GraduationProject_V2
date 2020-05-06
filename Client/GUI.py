@@ -5,7 +5,7 @@ import datetime
 import os
 from random import randint
 
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, Qt
 from PyQt5.QtGui import QImage
 from cv2.cv2 import VideoCapture, resize, cvtColor, COLOR_BGR2RGB, flip, imwrite
 
@@ -221,6 +221,7 @@ class SysHome(MainWindow):
 
     def __init__(self):
         super(SysHome, self).__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
         self.show_register = self.Register()
         self.show_my_info = self.MyInfo()
         self.show_attendance = self.MyInfo()
@@ -410,34 +411,46 @@ class SysHome(MainWindow):
             # 请求通过人脸识别验证身份
             data = {'image_cache': cache}
 
+            # 创建工作线程
             class Worker(QThread):
 
                 signal = pyqtSignal(dict)
+                ui_signal = pyqtSignal(dict)  # 官网建议不要再子线程中处理UI
 
                 def __init__(self, req_data):
                     QThread.__init__(self)
                     self.data = req_data
 
                 def run(self):
+                    """
+                    耗时工作
+                    :return:
+                    """
                     try:
                         conn = CR()
-                        res = conn.CheckIdentityByFaceRequest(self.data)  # 匹配信息，返回姓名、ID、用户类型
-                        conn.CloseChannel()
-                        self.signal.emit(res)
+                        try:
+                            res = conn.CheckIdentityByFaceRequest(self.data)  # 匹配信息，返回姓名、ID、用户类型
+                            self.signal.emit(res)
+                        except Exception as e:
+                            print(e)
+                            self.ui_signal.emit({'words': str(e), 'type': None})
+                        finally:
+                            conn.CloseChannel()
                     except Exception as e:
                         print(e)
-                        warning = Alert(str(e))
-                        warning.exec_()
+                        self.ui_signal.emit({'words': "请求失败", 'type': None})
                     finally:  # 退出线程，没有exit信号不然会一直守护
                         self.exit()
 
             def afterEmit(res):
                 """
-                接收到线程信号后做出响应
+                接收到线程信号后做出响应，主要接收数据
                 功能：显示窗口
                 :param res: 数据 -> dict
                 :return:
                 """
+
+                print(worker.isFinished(), worker.isRunning())
                 self.show_my_info.user_name.setText(res['user_name'])
                 self.show_my_info.user_type.setText("学生" if UserType(res['user_type']) == UserType.Student else "教师")
                 self.show_my_info.user_id.setText(str(res['user_id']))
@@ -451,8 +464,23 @@ class SysHome(MainWindow):
                 timer.start()
                 self.show_my_info.exec_()
 
+            def showAlert(words_type):
+                """
+                接收线程信号，主要创建UI
+                功能：染出警告窗口
+                :param words_type:消息,类型 -> dict
+                :return:
+                """
+
+                if not words_type['type']:  # 警告窗口
+                    window = Alert(words=words_type['words'])
+                else:  # 成功窗口
+                    window = Alert(words=words_type['words'], _type=words_type['type'])
+                window.exec_()
+
             worker = Worker(data)
             worker.signal.connect(afterEmit)
+            worker.ui_signal.connect(showAlert)
             worker.start()
             worker.exec_()  # start后守护，解决卡顿bug
         except Exception as e:
@@ -501,21 +529,82 @@ class SysHome(MainWindow):
             if self.checkInput():  # 输入正确
                 self.process.show()
                 data = {'user_id': int(self.input_id.text()), 'image_cache': self.training_pic}
-                try:
-                    self.process.setValue(20)
-                    conn = CR()
-                    self.process.setValue(55)
-                    if conn.registerRequest(data) == ClientRequest.Success:
-                        self.process.setValue(100)
+
+                class Worker(QThread):
+
+                    signal = pyqtSignal(int)
+                    ui_signal = pyqtSignal(dict)  # 处理ui
+
+                    def __init__(self, req_data):
+                        QThread.__init__(self)
+                        self.data = req_data
+
+                    def run(self):
+                        """
+                        耗时工作
+                        :return:
+                        """
+
+                        try:
+                            conn = CR()
+                            self.signal.emit(26)
+                            time.sleep(0.5)
+                            try:
+                                self.signal.emit(54)
+                                res = conn.registerRequest(self.data)
+                                if res == ClientRequest.Success:
+                                    self.signal.emit(89)
+                                    time.sleep(0.5)
+                                    self.signal.emit(100)
+                                    self.ui_signal.emit({'words': "注册成功", 'type': 'alright'})
+                            except Exception as e:
+                                print(e)
+                                self.signal.emit(-1)
+                                self.ui_signal.emit({'words': str(e), 'type': None})
+                            finally:
+                                conn.CloseChannel()
+                        except Exception as e:
+                            print(e)
+                            self.ui_signal.emit({'words': "请求失败", 'type': None})
+                        finally:
+                            self.exit()
+
+                def afterEmit(response):
+                    """
+                    线程发出信号，接收数据
+                    功能：更新进度条
+                    :param response: 进度 -> int
+                    :return:
+                    """
+
+                    if response == -1:
+                        self.resetProcessBar()
+                    elif response == 100:
+                        self.process.setValue(response)
                         self.close()
-                        right = Alert("注册成功", _type='alright')
-                        right.exec_()
-                    conn.CloseChannel()
-                except Exception as e:
-                    print(e)
-                    warning = Alert(str(e))
-                    warning.exec_()
-                    self.resetProcessBar()
+                        self.resetProcessBar()
+                    else:
+                        self.process.setValue(response)
+
+                def showAlert(words_type):
+                    """
+                    接收线程信号，主要创建UI
+                    功能：染出警告窗口
+                    :param words_type:消息,类型 -> dict
+                    :return:
+                    """
+
+                    if not words_type['type']:  # 警告窗口
+                        window = Alert(words=words_type['words'])
+                    else:  # 成功窗口
+                        window = Alert(words=words_type['words'], _type=words_type['type'])
+                    window.exec_()
+
+                worker = Worker(data)
+                worker.signal.connect(afterEmit)
+                worker.ui_signal.connect(showAlert)
+                worker.start()
+                worker.exec_()
 
         def resetProcessBar(self):
             """
