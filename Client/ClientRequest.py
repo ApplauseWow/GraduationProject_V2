@@ -20,6 +20,12 @@ class CR(object):
     def __init__(self):
         self.channel = grpc.insecure_channel("{server}:{port}".format(server=self._HOST, port=self._PORT))
         self.stub = correspondence_pb2_grpc.BackendStub(self.channel)
+        try:
+            grpc.channel_ready_future(self.channel).result(timeout=1)
+        except Exception as e:
+            print(e)
+            self.channel.close()
+            raise Exception("连接失败")
 
     def CloseChannel(self):
         self.channel.close()
@@ -299,12 +305,40 @@ class CR(object):
             raise Exception('fail to request!')
 
     def CheckIdentityByFaceRequest(self, data):
-        raise Exception("识别失败")
-        # return {'user_id': 201610414206, 'user_type': 0, 'user_name': '郭高余'}
+        """
+        通过人脸识别匹配用户信息
+        :param data:数据
+        :return: res['result'] -> dict{'user_name', 'user_type', 'user_name'}
+        """
 
-    def registerRequest(self, data):
-        return ClientRequest.Success
-        # raise Exception("注册失败")
+        try:
+            response = self.stub.CheckIdentityByFace(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            if res['operation'] == ClientRequest.Failure:
+                raise Exception('人脸信息匹配失败')
+            elif res['operation'] == ClientRequest.Success:
+                return res['result']
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('请求失败')
+
+    def RegisterRequest(self, data):
+        """
+        人脸注册
+        :param data:数据
+        :return: res['result'] -> dict{'user_name', 'user_type', 'user_name'}
+        """
+
+        try:
+            response = self.stub.Register(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            if res['operation'] == ClientRequest.Failure:
+                raise Exception('注册失败')
+            elif res['operation'] == ClientRequest.Success:
+                return res['operation']
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('请求失败')
 
 
 if __name__ == '__main__':

@@ -29,6 +29,11 @@ service Backend {
     rpc GetClockInOrOutTimeStamp(RequestStruct) returns (ResponseStruct) {} // 教师学生共用
     rpc GetClockInOrOutCountEachHour(RequestStruct) returns (ResponseStruct) {} // 教师专用
     rpc GetClockInRateToday(RequestStruct) returns (ResponseStruct) {} // 教师专用
+
+    // ->人脸相关接口
+    rpc CheckIdentityByFace(RequestStruct) returns (ResponseStruct) {} // 通用
+    rpc Register(RequestStruct) returns (ResponseStruct) {} // 通用
+
 }
 
 

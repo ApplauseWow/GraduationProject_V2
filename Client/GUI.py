@@ -222,9 +222,10 @@ class SysHome(MainWindow):
     def __init__(self):
         super(SysHome, self).__init__()
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.show_register = self.Register()
+        self.show_register = None
         self.show_my_info = self.MyInfo()
         self.show_attendance = self.MyInfo()
+        self.show_management = None
 
         # 设置时间定时器
         self.timer_clock = QTimer()
@@ -246,7 +247,7 @@ class SysHome(MainWindow):
         self.face_reg.clicked.connect(self.register)
 
         # 信号绑定
-        self.show_register.resetCapturePicSignal.connect(self.resetRegisterImageCache)
+        # self.show_register.resetCapturePicSignal.connect(self.resetRegisterImageCache)
 
     def update_time(self):
         """
@@ -345,21 +346,76 @@ class SysHome(MainWindow):
         try:
             # 抓拍
             cache = self.saveImageCache()
-            try:
-                # 请求通过人脸识别验证身份
-                data = {'image_cache': cache}
-                conn = CR()
-                res = conn.CheckIdentityByFaceRequest(data)  # 匹配信息，返回姓名、ID、用户类型
-                conn.CloseChannel()
+            # 请求通过人脸识别验证身份
+            data = {'image_cache': cache}
+
+            # 创建工作线程
+            class Worker(QThread):
+
+                signal = pyqtSignal(dict)
+                ui_signal = pyqtSignal(dict)  # 官网建议不要再子线程中处理UI
+
+                def __init__(self, req_data):
+                    QThread.__init__(self)
+                    self.data = req_data
+
+                def run(self):
+                    """
+                    耗时工作
+                    :return:
+                    """
+                    try:
+                        conn = CR()
+                        try:
+                            res = conn.CheckIdentityByFaceRequest(self.data)  # 匹配信息，返回姓名、ID、用户类型
+                            self.signal.emit(res)
+                        except Exception as e:
+                            print(e)
+                            self.ui_signal.emit({'words': str(e), 'type': None})
+                        finally:
+                            conn.CloseChannel()
+                    except Exception as e:
+                        print(e)
+                        self.ui_signal.emit({'words': str(e), 'type': None})
+                    finally:  # 退出线程，没有exit信号不然会一直守护
+                        self.exit()
+
+            def afterEmit(res):
+                """
+                接收到线程信号后做出响应，主要接收数据
+                功能：进入管理系统
+                :param res: 数据 -> dict
+                :return:
+                """
+
+                print(worker.isFinished(), worker.isRunning())
                 # 获取身份信息
-                show_management = Management(user_id=res['user_id'], user_type=res['user_type'])
+                self.show_management = Management(user_id=res['user_id'], user_type=res['user_type'])
                 self.camera_timer.stop()
-                show_management.exec_()
+                map(lambda x: x.setEnabled(False), self.buttons)  # 进入管理系统后不可操作主界面
+                self.show_management.exec_()
+                map(lambda x: x.setEnabled(True), self.buttons)
                 self.camera_timer.start()
-            except Exception as e:
-                print(e)
-                warning = Alert(str(e))
-                warning.exec_()
+
+            def showAlert(words_type):
+                """
+                接收线程信号，主要创建UI
+                功能：染出警告窗口
+                :param words_type:消息,类型 -> dict
+                :return:
+                """
+
+                if not words_type['type']:  # 警告窗口
+                    window = Alert(words=words_type['words'])
+                else:  # 成功窗口
+                    window = Alert(words=words_type['words'], _type=words_type['type'])
+                window.exec_()
+
+            worker = Worker(data)
+            worker.signal.connect(afterEmit)
+            worker.ui_signal.connect(showAlert)
+            worker.start()
+            worker.exec_()  # start后守护，解决卡顿bug
         except Exception as e:
             print(e)
             warning = Alert(str(e))
@@ -374,7 +430,9 @@ class SysHome(MainWindow):
         try:
             # 抓拍
             cache = self.saveImageCache()
-            # 设置
+            # 设置图像
+            self.show_register = self.Register()  # 避免迭代exec_()，重新创建
+            self.show_register.resetCapturePicSignal.connect(self.resetRegisterImageCache)  # 添加重设图像槽函数
             self.show_register.getImageCache(cache)
             # 显示窗口
             self.show_register.exec_()
@@ -438,7 +496,7 @@ class SysHome(MainWindow):
                             conn.CloseChannel()
                     except Exception as e:
                         print(e)
-                        self.ui_signal.emit({'words': "请求失败", 'type': None})
+                        self.ui_signal.emit({'words': str(e), 'type': None})
                     finally:  # 退出线程，没有exit信号不然会一直守护
                         self.exit()
 
@@ -551,7 +609,7 @@ class SysHome(MainWindow):
                             time.sleep(0.5)
                             try:
                                 self.signal.emit(54)
-                                res = conn.registerRequest(self.data)
+                                res = conn.RegisterRequest(self.data)
                                 if res == ClientRequest.Success:
                                     self.signal.emit(89)
                                     time.sleep(0.5)
@@ -565,7 +623,8 @@ class SysHome(MainWindow):
                                 conn.CloseChannel()
                         except Exception as e:
                             print(e)
-                            self.ui_signal.emit({'words': "请求失败", 'type': None})
+                            self.signal.emit(-1)
+                            self.ui_signal.emit({'words': str(e), 'type': None})
                         finally:
                             self.exit()
 
@@ -721,6 +780,7 @@ class Management(ManagementWindow):
 
         # 可能与其他sender冲突
         try:
+            self.setEnabled(False)
             index = self.menu_dict[self.sender().objectName()]
             self.right_layout.setCurrentIndex(index)
             self.right_layout.widget(index).initPage()  # 所有组内控件重写一个初始化函数解决了堆叠控件切换后刷新问题
@@ -728,6 +788,18 @@ class Management(ManagementWindow):
             print(e)
             warning = Alert(words=u"切换失败！")
             warning.exec_()
+        finally:
+            self.setEnabled(True)
+
+    def keyPressEvent(self, QKeyEvent):
+        """
+        按esc关闭窗口
+        :param QKeyEvent:
+        :return:
+        """
+
+        if QKeyEvent.key() == Qt.Key_Escape:  # clicked the ESC
+            self.close()
 
     # 以下为内部组件类 所有init函数参数都必须统一接收user_id user_type 注意顺序
     class ShowNotes(NoteTable):
@@ -801,20 +873,26 @@ class Management(ManagementWindow):
             def initializedModel(self):
                 try:
                     conn = CR()
-                    self.currentPage = 1
-                    self.totalRecordCount = conn.GetCountRequest('note', {'is_valid': NoteStatus.Valid.value})
-                    conn.CloseChannel()
-                    if self.totalRecordCount % self.pageRecordCount == 0:
-                        if self.totalRecordCount != 0:
-                            self.totalPage = self.totalRecordCount / self.pageRecordCount
+                    try:
+                        self.currentPage = 1
+                        self.totalRecordCount = conn.GetCountRequest('note', {'is_valid': NoteStatus.Valid.value})
+                        if self.totalRecordCount % self.pageRecordCount == 0:
+                            if self.totalRecordCount != 0:
+                                self.totalPage = self.totalRecordCount / self.pageRecordCount
+                            else:
+                                self.totalPage = 1
                         else:
-                            self.totalPage = 1
-                    else:
-                        self.totalPage = int(self.totalRecordCount / self.pageRecordCount) + 1
-                    self.queryRecord(0)
+                            self.totalPage = int(self.totalRecordCount / self.pageRecordCount) + 1
+                        self.queryRecord(0)
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"查询失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"查询失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
 
             def queryRecord(self, limit_index):
@@ -826,13 +904,19 @@ class Management(ManagementWindow):
 
                 try:
                     conn = CR()
-                    notes = conn.GetAllNotesRequest(start=limit_index, num=self.pageRecordCount,
-                                                    is_valid=NoteStatus.Valid.value)
-                    self.addRecords(self.col_list, notes)
-                    conn.CloseChannel()
+                    try:
+                        notes = conn.GetAllNotesRequest(start=limit_index, num=self.pageRecordCount,
+                                                        is_valid=NoteStatus.Valid.value)
+                        self.addRecords(self.col_list, notes)
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"查询失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"查询失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
 
             def operationOnBtClicked(self, primary_key):
@@ -844,16 +928,22 @@ class Management(ManagementWindow):
 
                 try:
                     conn = CR()
-                    # 更新
-                    res = conn.VoidTheNoteRequest(primary_key)
-                    if res == ClientRequest.Success:
-                        alright = Alert(words=u"操作成功！", _type='alright')
-                        alright.exec_()
-                        self.update_signal.emit()  # 更新页面
-                    conn.CloseChannel()
+                    try:
+                        # 更新
+                        res = conn.VoidTheNoteRequest(primary_key)
+                        if res == ClientRequest.Success:
+                            alright = Alert(words=u"操作成功！", _type='alright')
+                            alright.exec_()
+                            self.update_signal.emit()  # 更新页面
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"操作失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"操作失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
 
             def showRecord(self, index):
@@ -893,20 +983,26 @@ class Management(ManagementWindow):
             def initializedModel(self):
                 try:
                     conn = CR()
-                    self.currentPage = 1
-                    self.totalRecordCount = conn.GetCountRequest('note', {'is_valid': NoteStatus.Invalid.value})
-                    conn.CloseChannel()
-                    if self.totalRecordCount % self.pageRecordCount == 0:
-                        if self.totalRecordCount != 0:
-                            self.totalPage = self.totalRecordCount / self.pageRecordCount
+                    try:
+                        self.currentPage = 1
+                        self.totalRecordCount = conn.GetCountRequest('note', {'is_valid': NoteStatus.Invalid.value})
+                        if self.totalRecordCount % self.pageRecordCount == 0:
+                            if self.totalRecordCount != 0:
+                                self.totalPage = self.totalRecordCount / self.pageRecordCount
+                            else:
+                                self.totalPage = 1
                         else:
-                            self.totalPage = 1
-                    else:
-                        self.totalPage = int(self.totalRecordCount / self.pageRecordCount) + 1
-                    self.queryRecord(0)
+                            self.totalPage = int(self.totalRecordCount / self.pageRecordCount) + 1
+                        self.queryRecord(0)
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"查询失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"查询失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
 
             def queryRecord(self, limitIndex):
@@ -918,13 +1014,19 @@ class Management(ManagementWindow):
 
                 try:
                     conn = CR()
-                    notes = conn.GetAllNotesRequest(start=limitIndex, num=self.pageRecordCount,
-                                                    is_valid=NoteStatus.Invalid.value)
-                    self.addRecords(self.col_list, notes)
-                    conn.CloseChannel()
+                    try:
+                        notes = conn.GetAllNotesRequest(start=limitIndex, num=self.pageRecordCount,
+                                                        is_valid=NoteStatus.Invalid.value)
+                        self.addRecords(self.col_list, notes)
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"查询失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"查询失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
 
             def showRecord(self, index):
@@ -998,18 +1100,23 @@ class Management(ManagementWindow):
                 }
                 try:
                     conn = CR()
-                    res = conn.InsertANoteRequest(data)
-                    if res == ClientRequest.Success:
-                        alright = Alert(words=u"操作成功！", _type='alright')
-                        alright.exec_()
-                        self.update_signal.emit()
-                    conn.CloseChannel()
+                    try:
+                        res = conn.InsertANoteRequest(data)
+                        if res == ClientRequest.Success:
+                            self.close()
+                            alright = Alert(words=u"操作成功！", _type='alright')
+                            alright.exec_()
+                            self.update_signal.emit()
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"操作失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"操作失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
-                finally:
-                    self.close()
 
             def ModifyNote(self):
                 """
@@ -1026,18 +1133,24 @@ class Management(ManagementWindow):
                 }
                 try:
                     conn = CR()
-                    res = conn.ModifyTheNoteRequest(data)
-                    if res == ClientRequest.Success:
-                        alright = Alert(words=u"操作成功！", _type='alright')
-                        alright.exec_()
-                        self.update_signal.emit()
-                    conn.CloseChannel()
+                    try:
+                        res = conn.ModifyTheNoteRequest(data)
+                        if res == ClientRequest.Success:
+                            self.close()
+                            alright = Alert(words=u"操作成功！", _type='alright')
+                            alright.exec_()
+                            self.update_signal.emit()
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"操作失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"操作失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
-                finally:
-                    self.close()
+
 
     # ---------------------ShowNote  complete------------------------
 
@@ -1098,20 +1211,26 @@ class Management(ManagementWindow):
             def initializedModel(self):
                 try:
                     conn = CR()
-                    self.currentPage = 1
-                    self.totalRecordCount = conn.GetCountRequest('user')
-                    conn.CloseChannel()
-                    if self.totalRecordCount % self.pageRecordCount == 0:
-                        if self.totalRecordCount != 0:
-                            self.totalPage = self.totalRecordCount / self.pageRecordCount
+                    try:
+                        self.currentPage = 1
+                        self.totalRecordCount = conn.GetCountRequest('user')
+                        if self.totalRecordCount % self.pageRecordCount == 0:
+                            if self.totalRecordCount != 0:
+                                self.totalPage = self.totalRecordCount / self.pageRecordCount
+                            else:
+                                self.totalPage = 1
                         else:
-                            self.totalPage = 1
-                    else:
-                        self.totalPage = int(self.totalRecordCount / self.pageRecordCount) + 1
-                    self.queryRecord(0)
+                            self.totalPage = int(self.totalRecordCount / self.pageRecordCount) + 1
+                        self.queryRecord(0)
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"查询失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"查询失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
 
             def queryRecord(self, limitIndex):
@@ -1123,12 +1242,18 @@ class Management(ManagementWindow):
 
                 try:
                     conn = CR()
-                    users = conn.GetAllUserRequest(start=limitIndex, num=self.pageRecordCount)
-                    self.addRecords(self.col_list, users)
-                    conn.CloseChannel()
+                    try:
+                        users = conn.GetAllUserRequest(start=limitIndex, num=self.pageRecordCount)
+                        self.addRecords(self.col_list, users)
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"查询失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"查询失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
 
             def operationOnBtClicked(self, primary_key):
@@ -1140,18 +1265,24 @@ class Management(ManagementWindow):
 
                 try:
                     conn = CR()
-                    # 更新
-                    res = conn.DeleteTheUserRequest(primary_key)
-                    if res == ClientRequest.Success:
-                        alright = Alert(words=u"操作成功！", _type='alright')
-                        alright.exec_()
-                        self.initializedModel()  # 重新刷新页面色
-                        self.updateStatus()
-                        self.update_signal.emit()
-                    conn.CloseChannel()
+                    try:
+                        # 更新
+                        res = conn.DeleteTheUserRequest(primary_key)
+                        if res == ClientRequest.Success:
+                            alright = Alert(words=u"操作成功！", _type='alright')
+                            alright.exec_()
+                            self.initializedModel()  # 重新刷新页面色
+                            self.updateStatus()
+                            self.update_signal.emit()
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"操作失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"操作失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
 
             def showRecord(self, index):
@@ -1221,45 +1352,51 @@ class Management(ManagementWindow):
                 try:
                     # 查询数据
                     conn = CR()
-                    res_everyday_hour = conn.GetWorkHourEveryDayRequest(data)
-                    res_timestamp = conn.GetClockInOrOutTimeStampRequest(data)
-                    conn.CloseChannel()
-                    # 创建js文件
-                    with open('./ui_design/js/html_model.html', 'r') as f:
-                        html_head = f.read()
-                    with open('./ui_design/js/self_clockInOrOut_distribution.js', 'r') as f:
-                        js_timestamp = f.read()
-                    with open('./ui_design/js/self_everyday_workhour_aweek.js', 'r') as f:
-                        js_everyday_hour = f.read()
-                    html_timestamp = "".join([html_head.format(400, 400),
-                                              "<script>var data_clockin = {};var data_clockout = {};</script>".format(
-                                                  res_timestamp['clock_in'], res_timestamp['clock_out']),
-                                              "<script>",
-                                              js_timestamp,
-                                              "</script></body></html>"])
-                    html_everyday_hour = "".join([html_head.format(400, 400),
-                                                  "<script>var data = {};</script>".format(res_everyday_hour),
+                    try:
+                        res_everyday_hour = conn.GetWorkHourEveryDayRequest(data)
+                        res_timestamp = conn.GetClockInOrOutTimeStampRequest(data)
+                        # 创建js文件
+                        with open('./ui_design/js/html_model.html', 'r') as f:
+                            html_head = f.read()
+                        with open('./ui_design/js/self_clockInOrOut_distribution.js', 'r') as f:
+                            js_timestamp = f.read()
+                        with open('./ui_design/js/self_everyday_workhour_aweek.js', 'r') as f:
+                            js_everyday_hour = f.read()
+                        html_timestamp = "".join([html_head.format(400, 400),
+                                                  "<script>var data_clockin = {};var data_clockout = {};</script>".format(
+                                                      res_timestamp['clock_in'], res_timestamp['clock_out']),
                                                   "<script>",
-                                                  js_everyday_hour,
+                                                  js_timestamp,
                                                   "</script></body></html>"])
-                    with open('./ui_design/html_cache/self_1.html', 'w') as f:
-                        f.write(html_timestamp)
-                    with open('./ui_design/html_cache/self_2.html', 'w') as f:
-                        f.write(html_everyday_hour)
+                        html_everyday_hour = "".join([html_head.format(400, 400),
+                                                      "<script>var data = {};</script>".format(res_everyday_hour),
+                                                      "<script>",
+                                                      js_everyday_hour,
+                                                      "</script></body></html>"])
+                        with open('./ui_design/html_cache/self_1.html', 'w') as f:
+                            f.write(html_timestamp)
+                        with open('./ui_design/html_cache/self_2.html', 'w') as f:
+                            f.write(html_everyday_hour)
 
-                    current_path = os.getcwd()  # 当前目录
-                    # 加载网页
-                    self.timestamp_url.setUrl(
-                        "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\',
-                                                                                                                  '/'))
-                    self.timestamp.setUrl(self.timestamp_url)
-                    self.hour_everyday_url.setUrl(
-                        "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\',
-                                                                                                                  '/'))
-                    self.hour_everyday.setUrl(self.hour_everyday_url)
+                        current_path = os.getcwd()  # 当前目录
+                        # 加载网页
+                        self.timestamp_url.setUrl(
+                            "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\',
+                                                                                                                      '/'))
+                        self.timestamp.setUrl(self.timestamp_url)
+                        self.hour_everyday_url.setUrl(
+                            "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\',
+                                                                                                                      '/'))
+                        self.hour_everyday.setUrl(self.hour_everyday_url)
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u" 统计失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u" 统计失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
 
             def CreateNewUser(self):
@@ -1283,18 +1420,24 @@ class Management(ManagementWindow):
                     }
                     try:
                         conn = CR()
-                        res = conn.InsertAUserRequest(data)
-                        if res == ClientRequest.Success:
-                            alright = Alert(words=u"操作成功！", _type='alright')
-                            alright.exec_()
-                            self.update_signal.emit()
-                        conn.CloseChannel()
+                        try:
+                            res = conn.InsertAUserRequest(data)
+                            if res == ClientRequest.Success:
+                                self.close()
+                                alright = Alert(words=u"操作成功！", _type='alright')
+                                alright.exec_()
+                                self.update_signal.emit()
+                        except Exception as e:
+                            print(e)
+                            warning = Alert(words=u"操作失败！")
+                            warning.exec_()
+                        finally:
+                            conn.CloseChannel()
                     except Exception as e:
                         print(e)
-                        warning = Alert(words=u"操作失败！")
+                        warning = Alert(str(e))
                         warning.exec_()
-                    finally:
-                        self.close()
+
                 else:  # 非法输入
                     pass
 
@@ -1319,18 +1462,24 @@ class Management(ManagementWindow):
                     }
                     try:
                         conn = CR()
-                        res = conn.ModifyTheUserRequest(data)
-                        if res == ClientRequest.Success:
-                            alright = Alert(words=u"操作成功！", _type='alright')
-                            alright.exec_()
-                            self.update_signal.emit()
-                        conn.CloseChannel()
+                        try:
+                            res = conn.ModifyTheUserRequest(data)
+                            if res == ClientRequest.Success:
+                                self.close()
+                                alright = Alert(words=u"操作成功！", _type='alright')
+                                alright.exec_()
+                                self.update_signal.emit()
+                        except Exception as e:
+                            print(e)
+                            warning = Alert(words=u"操作失败！")
+                            warning.exec_()
+                        finally:
+                            conn.CloseChannel()
                     except Exception as e:
                         print(e)
-                        warning = Alert(words=u"操作失败！")
+                        warning = Alert(str(e))
                         warning.exec_()
-                    finally:
-                        self.close()
+
                 else:  # 非法输入
                     pass
 
@@ -1411,21 +1560,27 @@ class Management(ManagementWindow):
 
             try:
                 conn = CR()
-                data = {'user_id': self.user_id}
-                Col2Index = ColName2Index['user']
-                data = conn.GetSelfInfoRequest(data)
-                conn.CloseChannel()
-                self.d_user_id.setText(str(data[Col2Index['user_id']]))
-                self.d_grade.setText(str(data[Col2Index['grade']]))
-                self.d_major.setText(data[Col2Index['major']])
-                self.d_class.setText(str(data[Col2Index['_class']]))
-                self.d_tel.setText(str(data[Col2Index['tel']]))
-                self.d_email.setText(data[Col2Index['email']])
-                mapper = {UserType.Teacher.value: u"教师", UserType.Student.value: u"学生"}
-                self.d_user_type.setText(mapper[data[Col2Index['user_type']]])
+                try:
+                    data = {'user_id': self.user_id}
+                    Col2Index = ColName2Index['user']
+                    data = conn.GetSelfInfoRequest(data)
+                    self.d_user_id.setText(str(data[Col2Index['user_id']]))
+                    self.d_grade.setText(str(data[Col2Index['grade']]))
+                    self.d_major.setText(data[Col2Index['major']])
+                    self.d_class.setText(str(data[Col2Index['_class']]))
+                    self.d_tel.setText(str(data[Col2Index['tel']]))
+                    self.d_email.setText(data[Col2Index['email']])
+                    mapper = {UserType.Teacher.value: u"教师", UserType.Student.value: u"学生"}
+                    self.d_user_type.setText(mapper[data[Col2Index['user_type']]])
+                except Exception as e:
+                    print(e)
+                    warning = Alert(words=u"查询失败！")
+                    warning.exec_()
+                finally:
+                    conn.CloseChannel()
             except Exception as e:
                 print(e)
-                warning = Alert(words=u"查询失败！")
+                warning = Alert(str(e))
                 warning.exec_()
 
         def ModifySelfInfo(self):
@@ -1435,27 +1590,33 @@ class Management(ManagementWindow):
             """
 
             if self.checkInput():
-                mapper = {u"教师": UserType.Teacher.value, u"学生": UserType.Student.value}
-                data = {
-                    'user_id': int(self.d_user_id.text()),
-                    'user_type': mapper[self.d_user_type.text()],
-                    'major': self.d_major.text(),
-                    'grade': int(self.d_grade.text()),
-                    '_class': int(self.d_class.text()),
-                    'tel': int(self.d_tel.text()),
-                    'email': self.d_email.text()
-                }
                 try:
+                    mapper = {u"教师": UserType.Teacher.value, u"学生": UserType.Student.value}
+                    data = {
+                        'user_id': int(self.d_user_id.text()),
+                        'user_type': mapper[self.d_user_type.text()],
+                        'major': self.d_major.text(),
+                        'grade': int(self.d_grade.text()),
+                        '_class': int(self.d_class.text()),
+                        'tel': int(self.d_tel.text()),
+                        'email': self.d_email.text()
+                    }
                     conn = CR()
-                    res = conn.ModifyTheUserRequest(data)
-                    if res == ClientRequest.Success:
-                        alright = Alert(words=u"操作成功！", _type='alright')
-                        alright.exec_()
-                        self.update_signal.emit()
-                    conn.CloseChannel()
+                    try:
+                        res = conn.ModifyTheUserRequest(data)
+                        if res == ClientRequest.Success:
+                            alright = Alert(words=u"操作成功！", _type='alright')
+                            alright.exec_()
+                            self.update_signal.emit()
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=u"操作失败！")
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
                 except Exception as e:
                     print(e)
-                    warning = Alert(words=u"操作失败！")
+                    warning = Alert(str(e))
                     warning.exec_()
             else:  # 非法输入
                 pass
@@ -1519,90 +1680,95 @@ class Management(ManagementWindow):
             try:
                 # 查询数据，此处应该更优雅，时间来不及，不值得执着于优美代码
                 conn = CR()
-                if UserType(self.user_type) == UserType.Student:  # 学生个人考勤页面
-                    data = {'user_id': self.user_id}
-                    res_everyday_hour = conn.GetWorkHourEveryDayRequest(data)
-                    res_timestamp = conn.GetClockInOrOutTimeStampRequest(data)
-                    conn.CloseChannel()
-                    # 创建js文件
-                    with open('./ui_design/js/html_model.html', 'r') as f:
-                        html_head = f.read()
-                    with open('./ui_design/js/self_clockInOrOut_distribution.js', 'r') as f:
-                        js_timestamp = f.read()
-                    with open('./ui_design/js/self_everyday_workhour_aweek.js', 'r') as f:
-                        js_everyday_hour = f.read()
-                    html_timestamp = "".join([html_head.format(400, 400),
-                                              "<script>var data_clockin = {};var data_clockout = {};</script>".format(
-                                                  res_timestamp['clock_in'], res_timestamp['clock_out']),
-                                              "<script>",
-                                              js_timestamp,
-                                              "</script></body></html>"])
-                    html_everyday_hour = "".join([html_head.format(400, 400),
-                                                  "<script>var data = {};</script>".format(res_everyday_hour),
+                try:
+                    if UserType(self.user_type) == UserType.Student:  # 学生个人考勤页面
+                        data = {'user_id': self.user_id}
+                        res_everyday_hour = conn.GetWorkHourEveryDayRequest(data)
+                        res_timestamp = conn.GetClockInOrOutTimeStampRequest(data)
+                        # 创建js文件
+                        with open('./ui_design/js/html_model.html', 'r') as f:
+                            html_head = f.read()
+                        with open('./ui_design/js/self_clockInOrOut_distribution.js', 'r') as f:
+                            js_timestamp = f.read()
+                        with open('./ui_design/js/self_everyday_workhour_aweek.js', 'r') as f:
+                            js_everyday_hour = f.read()
+                        html_timestamp = "".join([html_head.format(400, 400),
+                                                  "<script>var data_clockin = {};var data_clockout = {};</script>".format(
+                                                      res_timestamp['clock_in'], res_timestamp['clock_out']),
                                                   "<script>",
-                                                  js_everyday_hour,
+                                                  js_timestamp,
                                                   "</script></body></html>"])
-                    with open('./ui_design/html_cache/self_1.html', 'w') as f:
-                        f.write(html_timestamp)
-                    with open('./ui_design/html_cache/self_2.html', 'w') as f:
-                        f.write(html_everyday_hour)
-                else:  # 全体考勤页面
-                    data = {}
-                    res_location = conn.GetClockInOrOutCountEachHourRequest(data)
-                    res_clockin_today = conn.GetClockInRateTodayRequest(data)
-                    conn.CloseChannel()
-                    # 创建js文件
-                    with open('./ui_design/js/html_model.html', 'r') as f:
-                        html_head = f.read()
-                    with open('./ui_design/js/aweek_every_hour_clockIn.js', 'r') as f:
-                        js_each_hour = f.read()
-                    with open('./ui_design/js/today_clockIn_rate.js', 'r') as f:
-                        js_today_rate = f.read()
-                    html_clock_in = "".join([html_head.format(800, 400),
-                                             "<script>var data = {};var label = '{}';</script>".format(
-                                                 res_location['clock_in'], '到岗人数'),
-                                             "<script>",
-                                             js_each_hour,
-                                             "</script></body></html>"])
-                    html_clock_out = "".join([html_head.format(800, 400),
-                                              "<script>var data = {};var label = '{}'</script>".format(
-                                                  res_location['clock_out'], '离岗人数'),
-                                              "<script>",
-                                              js_each_hour,
-                                              "</script></body></html>"])
-                    html_clock_in_rate = "".join([html_head.format(400, 400),
-                                                  "<script type='text/javascript' src='../js/echarts-liquidfill.js'></script>",
-                                                  "<script>var clock_in = {};var total = {};</script>".format(
-                                                      res_clockin_today['clock_in'], res_clockin_today['total']),
+                        html_everyday_hour = "".join([html_head.format(400, 400),
+                                                      "<script>var data = {};</script>".format(res_everyday_hour),
+                                                      "<script>",
+                                                      js_everyday_hour,
+                                                      "</script></body></html>"])
+                        with open('./ui_design/html_cache/self_1.html', 'w') as f:
+                            f.write(html_timestamp)
+                        with open('./ui_design/html_cache/self_2.html', 'w') as f:
+                            f.write(html_everyday_hour)
+                    else:  # 全体考勤页面
+                        data = {}
+                        res_location = conn.GetClockInOrOutCountEachHourRequest(data)
+                        res_clockin_today = conn.GetClockInRateTodayRequest(data)
+                        # 创建js文件
+                        with open('./ui_design/js/html_model.html', 'r') as f:
+                            html_head = f.read()
+                        with open('./ui_design/js/aweek_every_hour_clockIn.js', 'r') as f:
+                            js_each_hour = f.read()
+                        with open('./ui_design/js/today_clockIn_rate.js', 'r') as f:
+                            js_today_rate = f.read()
+                        html_clock_in = "".join([html_head.format(800, 400),
+                                                 "<script>var data = {};var label = '{}';</script>".format(
+                                                     res_location['clock_in'], '到岗人数'),
+                                                 "<script>",
+                                                 js_each_hour,
+                                                 "</script></body></html>"])
+                        html_clock_out = "".join([html_head.format(800, 400),
+                                                  "<script>var data = {};var label = '{}'</script>".format(
+                                                      res_location['clock_out'], '离岗人数'),
                                                   "<script>",
-                                                  js_today_rate,
+                                                  js_each_hour,
                                                   "</script></body></html>"])
-                    with open('./ui_design/html_cache/all_1.html', 'w') as f:
-                        f.write(html_clock_in)
-                    with open('./ui_design/html_cache/all_2.html', 'w') as f:
-                        f.write(html_clock_out)
-                    with open('./ui_design/html_cache/all_3.html', 'w') as f:
-                        f.write(html_clock_in_rate)
+                        html_clock_in_rate = "".join([html_head.format(400, 400),
+                                                      "<script type='text/javascript' src='../js/echarts-liquidfill.js'></script>",
+                                                      "<script>var clock_in = {};var total = {};</script>".format(
+                                                          res_clockin_today['clock_in'], res_clockin_today['total']),
+                                                      "<script>",
+                                                      js_today_rate,
+                                                      "</script></body></html>"])
+                        with open('./ui_design/html_cache/all_1.html', 'w') as f:
+                            f.write(html_clock_in)
+                        with open('./ui_design/html_cache/all_2.html', 'w') as f:
+                            f.write(html_clock_out)
+                        with open('./ui_design/html_cache/all_3.html', 'w') as f:
+                            f.write(html_clock_in_rate)
 
-                current_path = os.getcwd()  # 当前目录
-                # 加载网页
-                if UserType(self.user_type) == UserType.Teacher:
-                    self.chart1_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_3.html").replace('\\', '/'))
-                    self.chart1.setUrl(self.chart1_url)
-                    self.chart2_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_1.html").replace('\\', '/'))
-                    self.chart2.setUrl(self.chart2_url)
-                    self.chart3_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_2.html").replace('\\', '/'))
-                    self.chart3.setUrl(self.chart3_url)
-                else:
-                    self.chart1_url.setUrl(
-                        "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\', '/'))
-                    self.chart1.setUrl(self.chart1_url)
-                    self.chart2_url.setUrl(
-                        "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\', '/'))
-                    self.chart2.setUrl(self.chart2_url)
+                    current_path = os.getcwd()  # 当前目录
+                    # 加载网页
+                    if UserType(self.user_type) == UserType.Teacher:
+                        self.chart1_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_3.html").replace('\\', '/'))
+                        self.chart1.setUrl(self.chart1_url)
+                        self.chart2_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_1.html").replace('\\', '/'))
+                        self.chart2.setUrl(self.chart2_url)
+                        self.chart3_url.setUrl("file:///" + os.path.join(current_path, "ui_design", "html_cache", "all_2.html").replace('\\', '/'))
+                        self.chart3.setUrl(self.chart3_url)
+                    else:
+                        self.chart1_url.setUrl(
+                            "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_1.html").replace('\\', '/'))
+                        self.chart1.setUrl(self.chart1_url)
+                        self.chart2_url.setUrl(
+                            "file:///" + os.path.join(current_path, "ui_design", "html_cache", "self_2.html").replace('\\', '/'))
+                        self.chart2.setUrl(self.chart2_url)
+                except Exception as e:
+                    print(e)
+                    warning = Alert(words=u" 统计失败！")
+                    warning.exec_()
+                finally:
+                    conn.CloseChannel()
             except Exception as e:
                 print(e)
-                warning = Alert(words=u" 统计失败！")
+                warning = Alert(str(e))
                 warning.exec_()
 
     # ---------------------ShowAttendanceCharts  complete------------------------
@@ -1612,13 +1778,15 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     # win_ = Management(201610414206, 1)
     # win_.show()
-    win1 = SysHome()
+
     # win2 = MyInfo()
     # win3 = SysHome().Register()
 
     # win4 = Alert()
-    #
+
+    win1 = SysHome()
     win1.show()
+
     # win2.show()
     # win3.show()
     # win4.show()

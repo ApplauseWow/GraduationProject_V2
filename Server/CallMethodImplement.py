@@ -292,6 +292,27 @@ class CallMethodImplement(object):
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
+    @log
+    def CheckIdentityByFace(self, ip, data):
+        """
+        通过人脸匹配用户信息
+        :param ip: 用于识别客户端
+        :param data: 请求参数
+        :return: dict{'operation': , 'exception': , 'result': }
+        """
+
+        try:
+
+        except Exception as e:
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+
+    @log
+    def Register(self, ip, data):
+        try:
+
+        except Exception as e:
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+
 
 # test
 if __name__ == '__main__':

@@ -132,7 +132,7 @@ class WarningWindow(QDialog, Ui_warning_win):
         self.words.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         self.setAttribute(Qt.WA_TranslucentBackground)  # 窗体背景透明
-        self.setWindowFlags(Qt.FramelessWindowHint)  # 影藏窗口
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)  # 影藏窗口
 
 
 class RegisterWindow(QDialog, Ui_register_win):

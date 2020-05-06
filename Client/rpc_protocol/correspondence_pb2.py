@@ -18,7 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n\x14\x63orrespondence.proto\"\x1c\n\x0cHelloRequest\x12\x0c\n\x04para\x18\x01 \x01(\x0c\"\x1f\n\rHelloResponse\x12\x0e\n\x06result\x18\x01 \x01(\x0c\"\x1d\n\rRequestStruct\x12\x0c\n\x04para\x18\x01 \x01(\x0c\" \n\x0eResponseStruct\x12\x0e\n\x06result\x18\x01 \x01(\x0c\x32\xdb\x06\n\x07\x42\x61\x63kend\x12+\n\x08SayHello\x12\r.HelloRequest\x1a\x0e.HelloResponse\"\x00\x12\x30\n\rSayHelloAgain\x12\r.HelloRequest\x1a\x0e.HelloResponse\"\x00\x12\x34\n\x0fGetRecordsCount\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bGetAllNotes\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bInsertANote\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x32\n\rModifyTheNote\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bVoidTheNote\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bGetAllUsers\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x32\n\rDeleteTheUser\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bInsertAUser\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x32\n\rModifyTheUser\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12/\n\nGetTheUser\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x38\n\x13GetWorkHourEverYDay\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12=\n\x18GetClockInOrOutTimeStamp\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x41\n\x1cGetClockInOrOutCountEachHour\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x38\n\x13GetClockInRateToday\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x14\x63orrespondence.proto\"\x1c\n\x0cHelloRequest\x12\x0c\n\x04para\x18\x01 \x01(\x0c\"\x1f\n\rHelloResponse\x12\x0e\n\x06result\x18\x01 \x01(\x0c\"\x1d\n\rRequestStruct\x12\x0c\n\x04para\x18\x01 \x01(\x0c\" \n\x0eResponseStruct\x12\x0e\n\x06result\x18\x01 \x01(\x0c\x32\xc4\x07\n\x07\x42\x61\x63kend\x12+\n\x08SayHello\x12\r.HelloRequest\x1a\x0e.HelloResponse\"\x00\x12\x30\n\rSayHelloAgain\x12\r.HelloRequest\x1a\x0e.HelloResponse\"\x00\x12\x34\n\x0fGetRecordsCount\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bGetAllNotes\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bInsertANote\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x32\n\rModifyTheNote\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bVoidTheNote\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bGetAllUsers\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x32\n\rDeleteTheUser\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x30\n\x0bInsertAUser\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x32\n\rModifyTheUser\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12/\n\nGetTheUser\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x38\n\x13GetWorkHourEverYDay\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12=\n\x18GetClockInOrOutTimeStamp\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x41\n\x1cGetClockInOrOutCountEachHour\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x38\n\x13GetClockInRateToday\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12\x38\n\x13\x43heckIdentityByFace\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x12-\n\x08Register\x12\x0e.RequestStruct\x1a\x0f.ResponseStruct\"\x00\x62\x06proto3'
 )
 
 
@@ -190,7 +190,7 @@ _BACKEND = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   serialized_start=153,
-  serialized_end=1012,
+  serialized_end=1117,
   methods=[
   _descriptor.MethodDescriptor(
     name='SayHello',
@@ -331,6 +331,24 @@ _BACKEND = _descriptor.ServiceDescriptor(
     name='GetClockInRateToday',
     full_name='Backend.GetClockInRateToday',
     index=15,
+    containing_service=None,
+    input_type=_REQUESTSTRUCT,
+    output_type=_RESPONSESTRUCT,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='CheckIdentityByFace',
+    full_name='Backend.CheckIdentityByFace',
+    index=16,
+    containing_service=None,
+    input_type=_REQUESTSTRUCT,
+    output_type=_RESPONSESTRUCT,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='Register',
+    full_name='Backend.Register',
+    index=17,
     containing_service=None,
     input_type=_REQUESTSTRUCT,
     output_type=_RESPONSESTRUCT,
