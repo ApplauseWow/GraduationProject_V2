@@ -8,7 +8,7 @@ Index2ColName = {  # 按照表(对象)分类
     },
 
     'user': {
-        0: 'user_id', 1: 'major', 2: 'grade', 3: '_class', 4: 'user_type', 5: 'tel', 6: 'email'
+        0: 'user_id', 1: 'user_name', 2: 'major', 3: 'grade', 4: '_class', 5: 'user_type', 6: 'tel', 7: 'email'
     }
 
     

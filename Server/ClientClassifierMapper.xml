@@ -1,0 +1,4 @@
+<clients>
+    <client ip="127.0.0.1" file="127_0_0_1"></client>
+    <client ip="localhost" file="127_0_0_1"></client>
+</clients>

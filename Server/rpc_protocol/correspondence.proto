@@ -33,6 +33,7 @@ service Backend {
     // ->人脸相关接口
     rpc CheckIdentityByFace(RequestStruct) returns (ResponseStruct) {} // 通用
     rpc Register(RequestStruct) returns (ResponseStruct) {} // 通用
+    rpc ClockInOrOut(RequestStruct) returns (ResponseStruct) {} // 学生专用
 
 }
 

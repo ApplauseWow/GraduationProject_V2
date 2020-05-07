@@ -304,6 +304,7 @@ class CR(object):
             print(e)
             raise Exception('fail to request!')
 
+    # 人脸相关
     def CheckIdentityByFaceRequest(self, data):
         """
         通过人脸识别匹配用户信息
@@ -315,9 +316,9 @@ class CR(object):
             response = self.stub.CheckIdentityByFace(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
             res = pickle.loads(response.result)
             if res['operation'] == ClientRequest.Failure:
-                raise Exception('人脸信息匹配失败')
+                return res
             elif res['operation'] == ClientRequest.Success:
-                return res['result']
+                return res
         except Exception as e:  # 界面捕捉异常并弹出警告窗口
             print(e)
             raise Exception('请求失败')
@@ -326,21 +327,34 @@ class CR(object):
         """
         人脸注册
         :param data:数据
-        :return: res['result'] -> dict{'user_name', 'user_type', 'user_name'}
+        :return: res['result'] -> None
         """
 
         try:
             response = self.stub.Register(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
             res = pickle.loads(response.result)
             if res['operation'] == ClientRequest.Failure:
-                raise Exception('注册失败')
+                return res
             elif res['operation'] == ClientRequest.Success:
-                return res['operation']
+                return res
         except Exception as e:  # 界面捕捉异常并弹出警告窗口
             print(e)
             raise Exception('请求失败')
 
+    def ClockInOrOutRequest(self, data):
+        """
+        人脸考勤
+        :param data:数据
+        :return: {'operation':, 'exception':, 'result':}
+        """
 
-if __name__ == '__main__':
-    conn = CR()
-    print conn.GetAllNotesRequest()
+        try:
+            response = self.stub.ClockInOrOut(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            if res['operation'] == ClientRequest.Failure:
+                return res
+            elif res['operation'] == ClientRequest.Success:
+                return res
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('请求失败')

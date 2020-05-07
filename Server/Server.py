@@ -132,13 +132,22 @@ class BackendService(correspondence_pb2_grpc.BackendServicer):
     def CheckIdentityByFace(self, request, context):
         ip = str(context.peer()).split(':')[1]  # 客户端ip
         data = pickle.loads(request.para)  # 请求参数
+        data['obj'] = 'user'
         res = self.call_method.CheckIdentityByFace(ip=ip, data=data)
         return correspondence_pb2.ResponseStruct(result=pickle.dumps(res))
 
     def Register(self, request, context):
         ip = str(context.peer()).split(':')[1]  # 客户端ip
         data = pickle.loads(request.para)  # 请求参数
+        data['obj'] = 'user'
         res = self.call_method.Register(ip=ip, data=data)
+        return correspondence_pb2.ResponseStruct(result=pickle.dumps(res))
+
+    def ClockInOrOut(self, request, context):
+        ip = str(context.peer()).split(':')[1]  # 客户端ip
+        data = pickle.loads(request.para)  # 请求参数
+        data['obj'] = 'attendance'
+        res = self.call_method.InsertAObject(ip=ip, data=data)
         return correspondence_pb2.ResponseStruct(result=pickle.dumps(res))
 
 

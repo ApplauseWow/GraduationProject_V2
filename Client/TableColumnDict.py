@@ -28,6 +28,7 @@ __BASIC_COLUMN_DICT = {  # 按页面分类的基本字段列表
 
     'user': [
                 {'name': u'学号|工号', 'is_hidden': False, 'is_pk': True},
+                {'name': u'姓名', 'is_hidden': False, 'is_pk': False},
                 {'name': u'专业', 'is_hidden': False, 'is_pk': False},
                 {'name': u'年级', 'is_hidden': False, 'is_pk': False},
                 {'name': u'班', 'is_hidden': False, 'is_pk': False},
@@ -40,22 +41,16 @@ __BASIC_COLUMN_DICT = {  # 按页面分类的基本字段列表
 
 TABLE_COLUMN_DICT = {  # 按角色功能分类
 
-    UserType.Teacher:{  # 教师拥有权限
+    UserType.Teacher: {  # 教师拥有权限
 
         'current_note': _add_operation('note'),
         'previous_note': __BASIC_COLUMN_DICT['note'],
         'user': _add_operation('user')
     },
 
-    UserType.Student:{  # 学生拥有权限
+    UserType.Student: {  # 学生拥有权限
 
         'current_note': __BASIC_COLUMN_DICT['note']
     }
 
 }
-
-if __name__ == '__main__':
-    d = {'convert':lambda x: u"教师" if UserType(x) == UserType.Teacher else u"学生"}
-    print d['convert'](0)
-
-

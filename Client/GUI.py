@@ -245,6 +245,7 @@ class SysHome(MainWindow):
         self.face_login.clicked.connect(self.login)
         self.face_rec.clicked.connect(self.recognize)
         self.face_reg.clicked.connect(self.register)
+        self.att_rec.clicked.connect(self.clock_in_or_out)
 
         # 信号绑定
         # self.show_register.resetCapturePicSignal.connect(self.resetRegisterImageCache)
@@ -330,7 +331,9 @@ class SysHome(MainWindow):
         if self.camera.isOpened():  # 已打开
             flag, image = self.camera.read()
             if flag:
+                print(image.shape)
                 cache = resize(image, (0, 0), fx=0.35, fy=0.35)
+                print(cache.shape[0], cache.shape[1])
                 return cache
             else:
                 raise Exception('抓拍图像失败')
@@ -368,7 +371,10 @@ class SysHome(MainWindow):
                         conn = CR()
                         try:
                             res = conn.CheckIdentityByFaceRequest(self.data)  # 匹配信息，返回姓名、ID、用户类型
-                            self.signal.emit(res)
+                            if res['operation'] == ClientRequest.Success:
+                                self.signal.emit(res['result'])
+                            else:
+                                raise res['exception']
                         except Exception as e:
                             print(e)
                             self.ui_signal.emit({'words': str(e), 'type': None})
@@ -488,7 +494,10 @@ class SysHome(MainWindow):
                         conn = CR()
                         try:
                             res = conn.CheckIdentityByFaceRequest(self.data)  # 匹配信息，返回姓名、ID、用户类型
-                            self.signal.emit(res)
+                            if res['operation'] == ClientRequest.Success:
+                                self.signal.emit(res['result'])
+                            else:
+                                raise res['exception']
                         except Exception as e:
                             print(e)
                             self.ui_signal.emit({'words': str(e), 'type': None})
@@ -521,6 +530,94 @@ class SysHome(MainWindow):
                 timer.setInterval(3500)
                 timer.start()
                 self.show_my_info.exec_()
+
+            def showAlert(words_type):
+                """
+                接收线程信号，主要创建UI
+                功能：染出警告窗口
+                :param words_type:消息,类型 -> dict
+                :return:
+                """
+
+                if not words_type['type']:  # 警告窗口
+                    window = Alert(words=words_type['words'])
+                else:  # 成功窗口
+                    window = Alert(words=words_type['words'], _type=words_type['type'])
+                window.exec_()
+
+            worker = Worker(data)
+            worker.signal.connect(afterEmit)
+            worker.ui_signal.connect(showAlert)
+            worker.start()
+            worker.exec_()  # start后守护，解决卡顿bug
+        except Exception as e:
+            print(e)
+            warning = Alert(str(e))
+            warning.exec_()
+
+    def clock_in_or_out(self):
+        """
+        人脸考勤
+        :return:
+        """
+
+        try:
+            # 抓拍
+            cache = self.saveImageCache()
+            # 请求通过人脸识别验证身份
+            data = {'image_cache': cache}
+
+            # 创建工作线程
+            class Worker(QThread):
+
+                signal = pyqtSignal(dict)
+                ui_signal = pyqtSignal(dict)  # 官网建议不要再子线程中处理UI
+
+                def __init__(self, req_data):
+                    QThread.__init__(self)
+                    self.data = req_data
+
+                def run(self):
+                    """
+                    耗时工作
+                    :return:
+                    """
+                    try:
+                        conn = CR()
+                        try:
+                            res = conn.CheckIdentityByFaceRequest(self.data)  # 匹配信息，返回姓名、ID、用户类型
+                            if res['operation'] == ClientRequest.Success:
+                                if UserType(res['result']['user_type']) == UserType.Teacher:  # 教师不能考勤
+                                    self.ui_signal.emit({'words': "教师无法考勤", 'type': None})
+                                else:
+                                    self.signal.emit(res['result'])
+                            else:
+                                raise res['exception']
+                        except Exception as e:
+                            print(e)
+                            self.ui_signal.emit({'words': str(e), 'type': None})
+                        finally:
+                            conn.CloseChannel()
+                    except Exception as e:
+                        print(e)
+                        self.ui_signal.emit({'words': str(e), 'type': None})
+                    finally:  # 退出线程，没有exit信号不然会一直守护
+                        self.exit()
+
+            def afterEmit(res):
+                """
+                接收到线程信号后做出响应，主要接收数据
+                功能：显示窗口
+                :param res: 数据 -> dict
+                :return:
+                """
+
+                print(worker.isFinished(), worker.isRunning())
+                self.show_attendance.user_name.setText(res['user_name'])
+                self.show_attendance.user_type.setText("学生")
+                self.show_attendance.user_id.setText(str(res['user_id']))
+                self.show_attendance.b_login.hide()
+                self.show_attendance.exec_()
 
             def showAlert(words_type):
                 """
@@ -610,11 +707,13 @@ class SysHome(MainWindow):
                             try:
                                 self.signal.emit(54)
                                 res = conn.RegisterRequest(self.data)
-                                if res == ClientRequest.Success:
+                                if res['operation'] == ClientRequest.Success:
                                     self.signal.emit(89)
                                     time.sleep(0.5)
                                     self.signal.emit(100)
                                     self.ui_signal.emit({'words': "注册成功", 'type': 'alright'})
+                                else:
+                                    raise res['exception']
                             except Exception as e:
                                 print(e)
                                 self.signal.emit(-1)
@@ -723,6 +822,52 @@ class SysHome(MainWindow):
 
         def __init__(self):
             InfoWindow.__init__(self)
+            # 按钮绑定槽函数
+            self.b_in.clicked.connect(lambda: self.clock_in_or_out(AttendanceType.ClockIn.value))
+            self.b_off.clicked.connect(lambda: self.clock_in_or_out(AttendanceType.ClockOut.value))
+            self.b_wrong.clicked.connect(self.tryToRegisterAgain)
+
+        def clock_in_or_out(self, _type):
+            """
+            学生考勤打卡
+            :param _type:考勤类型
+            :return:
+            """
+
+            t = time.localtime(time.time())
+            data = {
+                'user_id': int(self.user_id.text()),
+                'date_time': datetime.datetime(t.tm_year, t.tm_mon, t.tm_mday,
+                                               t.tm_hour, t.tm_min, t.tm_sec),
+                'record_type': _type
+            }
+            try:
+                conn = CR()
+                try:
+                    res = conn.ClockInOrOutRequest(data)
+                    if res['operation'] == ClientRequest.Success:
+                        self.close()
+                        alright = Alert(words="考勤成功", _type='alright')
+                        alright.exec_()
+                    else:
+                        raise res['exception']
+                except Exception as e:
+                    print(e)
+                    warning = Alert(str(e))
+                    warning.exec_()
+            except Exception as e:
+                print(e)
+                warning = Alert(str(e))
+                warning.exec_()
+
+        def tryToRegisterAgain(self):
+            """
+            身份识别有误，提示重新注册
+            :return:
+            """
+
+            warning = Alert(words="重试或重新注册")
+            warning.exec_()
 
         def closeEvent(self, QCloseEvent):
             """
@@ -1163,7 +1308,7 @@ class Management(ManagementWindow):
 
         def __init__(self, user_id, user_type):
             StuffTable.__init__(self)
-            self.user_table = self.UserTable(user_type)
+            self.user_table = self.UserTable(user_type, user_id)
             self.user_table.update_signal.connect(self.initPage)
             self.lay.addWidget(self.user_table, 3, 1, 5, 5)
             self.lay.setRowStretch(1, 1)
@@ -1200,9 +1345,10 @@ class Management(ManagementWindow):
 
             update_signal = pyqtSignal()
 
-            def __init__(self, user_type):
+            def __init__(self, user_type, user_id):
                 Page.__init__(self)
                 self.user_type = user_type
+                self.user_id = user_id
                 self.col_list = TABLE_COLUMN_DICT[UserType(user_type)]['user']  # 获取表头信息
                 self.initializedModel()
                 self.setUpConnect()
@@ -1264,6 +1410,12 @@ class Management(ManagementWindow):
                 """
 
                 try:
+                    if primary_key[0] == self.user_id:
+                        raise Exception("禁止删除本人")
+                    elif primary_key[0] == 201610414202:
+                        raise Exception("禁止删除此用户")
+                    else:
+                        pass
                     conn = CR()
                     try:
                         # 更新
@@ -1327,6 +1479,7 @@ class Management(ManagementWindow):
                 else:  # 查看或者修改
                     self.bt_insert.hide()
                     self.d_user_id.setText(data['user_id'])
+                    self.d_user_name.setText(data['user_name'])
                     self.d_major.setText(data['major'])
                     self.d_user_type.setCurrentIndex(data['user_type'])
                     self.d_grade.setText(data['grade'])
@@ -1408,6 +1561,7 @@ class Management(ManagementWindow):
                 if self.checkInput():
                     data = {
                         'user_id': int(self.d_user_id.text()),
+                        'user_name': self.d_user_name.text(),
                         'user_type': self.d_user_type.currentData(),
                         'major': self.d_major.text() if UserType(
                             self.d_user_type.currentData()) == UserType.Student else None,
@@ -1450,6 +1604,7 @@ class Management(ManagementWindow):
                 if self.checkInput():
                     data = {
                         'user_id': int(self.d_user_id.text()),
+                        'user_name': self.d_user_name.text(),
                         'user_type': self.d_user_type.currentData(),
                         'major': self.d_major.text() if UserType(
                             self.d_user_type.currentData()) == UserType.Student else None,
@@ -1506,9 +1661,9 @@ class Management(ManagementWindow):
                 :return:
                 """
 
-                checks = [self.d_user_id, self.d_grade, self.d_major, self.d_class, self.d_tel,
-                          self.d_email] if UserType(self.d_user_type.currentData()) == UserType.Student else [
-                    self.d_user_id, self.d_tel, self.d_email]
+                checks = [self.d_user_id, self.d_user_name,
+                          self.d_grade, self.d_major,
+                          self.d_class, self.d_tel, self.d_email] if UserType(self.d_user_type.currentData()) == UserType.Student else [self.d_user_id, self.d_tel, self.d_email]
                 for sz in checks:
                     szText = sz.text()
                     if sz is self.d_major or sz is self.d_email:
@@ -1565,6 +1720,7 @@ class Management(ManagementWindow):
                     Col2Index = ColName2Index['user']
                     data = conn.GetSelfInfoRequest(data)
                     self.d_user_id.setText(str(data[Col2Index['user_id']]))
+                    self.d_user_name.setText(data[Col2Index['user_name']])
                     self.d_grade.setText(str(data[Col2Index['grade']]))
                     self.d_major.setText(data[Col2Index['major']])
                     self.d_class.setText(str(data[Col2Index['_class']]))
@@ -1594,6 +1750,7 @@ class Management(ManagementWindow):
                     mapper = {u"教师": UserType.Teacher.value, u"学生": UserType.Student.value}
                     data = {
                         'user_id': int(self.d_user_id.text()),
+                        'user_name': self.d_user_name.text(),
                         'user_type': mapper[self.d_user_type.text()],
                         'major': self.d_major.text(),
                         'grade': int(self.d_grade.text()),
@@ -1776,7 +1933,7 @@ class Management(ManagementWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    # win_ = Management(201610414206, 1)
+    # win_ = Management(201610414206, 0)
     # win_.show()
 
     # win2 = MyInfo()

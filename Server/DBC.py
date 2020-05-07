@@ -12,16 +12,16 @@ class DBC(object):
     数据库交互
     """
 
-    client_mapper = "./ClientDBMapper.xml"
-    sql_mapper = "./SQLMapper.xml"
+    __client_mapper = "./ClientDBMapper.xml"
+    __sql_mapper = "./SQLMapper.xml"
 
     def __init__(self, client_ip):
-        tree = ET.parse(self.client_mapper)  # 解析数据库信息xml
+        tree = ET.parse(self.__client_mapper)  # 解析数据库信息xml
         root = tree.getroot()  # 获取根节点
         client_info = dict()  # 客户端映射信息
         res = filter(lambda x: x.get('c_ip') == client_ip, root.findall('client'))  # 查找对应客户端信息
         if not res:  # 未查到对应的客户端信息
-            raise Exception("No such a client information!")
+            raise Exception("客户端未注册")
         else:  # 已查到
             for pair in res[0].items():
                 client_info[pair[0]] = pair[1]
@@ -32,7 +32,7 @@ class DBC(object):
                                         port=int(client_info['port']),
                                         password=client_info['pwd'],
                                         charset='utf8',
-                                        connect_timeout = 5
+                                        connect_timeout=5
                                         )
         except Exception as e:
             raise Exception("fail to connect to the DB for " + str(e))
@@ -58,7 +58,7 @@ class DBC(object):
         """
 
         if _type:  # 有筛选要求
-            tree = ET.parse(self.sql_mapper)
+            tree = ET.parse(self.__sql_mapper)
             root = tree.getroot()
             res = filter(lambda x: x.get('name') == table, root.findall('table'))  # 找到table的sql
             sql = res[0].find('limited_count').text
@@ -92,14 +92,14 @@ class DBC(object):
         elif start_end != () and not limitation:  # 需要分页，但没有限制
             sql = "select * from %s limit %s, %s;" % (table, start_end[0], start_end[1])
         elif start_end != () and limitation: # 需要分页且有限制条件
-            tree = ET.parse(self.sql_mapper)
+            tree = ET.parse(self.__sql_mapper)
             root = tree.getroot()
             res = filter(lambda x: x.get('name') == table, root.findall('table'))  # 找到table的sql
             sql = res[0].find('limited_search').text
             limitation['start'] = start_end[0]
             limitation['num'] = start_end[1]
         elif start_end == () and limitation:  # 不需要分页，但有限制要求
-            tree = ET.parse(self.sql_mapper)
+            tree = ET.parse(self.__sql_mapper)
             root = tree.getroot()
             res = filter(lambda x: x.get('name') == table, root.findall('table'))  # 找到table的sql
             basic_sql = res[0].find('limited_search').text
@@ -129,13 +129,13 @@ class DBC(object):
         :return:dict{'operation':DBOperation., 'exception': e, 'result':None}
         """
 
-        tree = ET.parse(self.sql_mapper)
+        tree = ET.parse(self.__sql_mapper)
         root = tree.getroot()
         res = filter(lambda x: x.get('name') == table, root.findall('table'))  # 找到table的sql
         sql = res[0].find(op).text
         cursor = self.conn.cursor()
         try:
-            row = cursor.execute(sql,para_dict)
+            row = cursor.execute(sql, para_dict)
             if row == 1:  # 操作成功
                 self.conn.commit()  # 必须提交事务才能生效
                 return {'operation': DBOperation.Success, 'exception': None, 'result': None}
@@ -155,7 +155,7 @@ class DBC(object):
         :return:dict{'operation':DBOperation., 'exception': e, 'result':results | None}
         """
 
-        tree = ET.parse(self.sql_mapper)
+        tree = ET.parse(self.__sql_mapper)
         root = tree.getroot()
         res = filter(lambda x: x.get('name') == table, root.findall('table'))  # 找到table的sql
         sql = res[0].find(op).text
@@ -171,44 +171,3 @@ class DBC(object):
             return {'operation': DBOperation.Failure, 'exception': e, 'result': None}
         finally:
             cursor.close()
-
-
-if __name__ == '__main__':
-    try:
-        db = DBC('127.0.0.1')
-        # a = db.get_all_info("user_info", (0, 3))
-        # print len(a)
-        # print(a == ())
-        # for i in a:
-        #     print(i)
-        # d= dict()
-        # d['user_id'] = 1
-        # d['grade'] = 1
-        # d['_class'] = 1
-        # d['email'] = '1'
-        # d['tel'] = '1'
-        # d['user_type'] = 1
-        # b = db.modify_record('insert', 'user_info', d)
-        # print(b)
-        # from datetime import date
-        # a = db.modify_record('insert', 'note_info', {'title':"第二", 'detail': "通知", 'pub_date':date(2020, 10, 1), 'is_valid':1})
-        # res = db.search_record('note_info')['result']
-        # print(res[2][1], type(res[2][1]), res[2][1], type(res[2][1]))
-        # print(u"{}".format(res[2][4]))
-        # print db.count_record('note_info', {'is_valid': 1})['result']
-        # a = "SELECT * FROM `note_info` WHERE `is_valid`=%(is_valid)s limit %(start)s, %(num)s;"
-        # index = a.find('limit')
-        # s = a[:index]+';'
-        # print(s)
-        # print db.search_record('user_info', (0, 8))['result']
-        # print str(None)=='None'
-
-        cur = db.special_search('attendance_record', 'self_timestamp_search', {'user_id': 201610414206, 'record_type': 0})
-        res = cur['result']
-        print(res)
-
-    except Exception as e:
-        print(e)
-
-
-

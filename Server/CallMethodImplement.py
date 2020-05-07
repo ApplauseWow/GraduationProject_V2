@@ -5,6 +5,8 @@ import re
 from Log import log
 from TypesEnum import *
 from DBC import DBC
+from FIP import FIP
+from FR import FR
 
 
 class CallMethodImplement(object):
@@ -302,14 +304,91 @@ class CallMethodImplement(object):
         """
 
         try:
-
+            conn = DBC(client_ip=ip)
+            face_recognition_module = FR(ip=ip)
+            # 提取人脸特征
+            feature = face_recognition_module.getFaceFeature(model_type='svm', image=data['image_cache'])
+            # 预测分类
+            res = face_recognition_module.classifyTheSample(model_type='svm', sample=feature)
+            res['operation'] = self.__operation_mapper[res['operation']]
+            if res['operation'] == ClientRequest.Failure:  # 识别失败
+                return res
+            else:  # 识别成功
+                # 查询用户信息
+                table = self.__obj2table_mapper[data['obj']]
+                res = conn.search_record(table=table, start_end=(), limitation={'user_id': int(res['result'])})
+                res['operation'] = self.__operation_mapper[res['operation']]
+                if res['result'] == ():  # unknown或者被误判为unknown
+                    return {'operation': ClientRequest.Failure, 'exception': Exception("未知人脸"), 'result': None}
+                else:
+                    result = {'user_id': res['result'][0][0], 'user_type': res['result'][0][5], 'user_name': res['result'][0][1]}
+                    res['result'] = result
+                    return res
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
     @log
     def Register(self, ip, data):
+        """
+        注册人脸，但必须后天添加了用户信息
+        :param ip: 用于识别客户端
+        :param data: 请求参数
+        :return: dict{'operation': , 'exception': , 'result': }
+        """
         try:
+            image_cache = data['image_cache']  # 人脸图像
+            label = str(data['user_id'])  # 用户id
+            data.pop('image_cache')
 
+            conn = DBC(client_ip=ip)
+            table = self.__obj2table_mapper[data['obj']]
+            data.pop('obj')
+
+            # 查询用户信息
+            res = conn.search_record(table=table, start_end=(), limitation=data)
+            res['operation'] = self.__operation_mapper[res['operation']]
+            # 匹配人脸，并注册人脸
+            if res['operation'] == ClientRequest.Success:
+                if res['result'] == ():  # 没有匹配到用户
+                    return {'operation': ClientRequest.Failure, 'exception': Exception("用户不存在"), 'result': None}
+                else:  # 匹配到用户，注册人脸
+                    face_recognition_module = FR(ip=ip)  # 人脸识别模块
+                    image_processing_module = FIP()  # 图像处理模块
+
+                    # 生成多个样本,并提取特征向量
+                    features = []  # 特征向量
+                    labels = []  # 特征向量的分类标签
+
+                    # 处理图片，添加干扰因素
+                    for image in image_processing_module.createMoreImage(image_cache):
+                        feature = face_recognition_module.getFaceFeature(model_type='svm', image=image)[0]
+                        features.append(feature.tolist())
+                        labels.append(label)
+
+                    # 获取所有样本，由于未知是否注册成功不能直接将新样本存入
+                    all_samples = face_recognition_module.getSamplesFromJson(model_type='svm')
+                    # 如果已注册，则删除旧样本
+                    while True:
+                        try:
+                            i = all_samples['y'].index(label)  # 获取索引
+                            all_samples['y'].pop(i)
+                            all_samples['x'].pop(i)
+                        except ValueError:
+                            break
+                    # 添加新样本
+                    all_samples['x'].extend(features)
+                    all_samples['y'].extend(labels)
+
+                    # 训练模型
+                    res = face_recognition_module.trainClassifier(model_type='svm', samples=all_samples)
+                    res['operation'] = self.__operation_mapper[res['operation']]
+                    if res['operation'] == ClientRequest.Failure:  # 训练失败
+                        pass
+                    else:  # 训练成功，保存特征向量
+                        face_recognition_module.saveSamplesToJson(model_type='svm', new_samples={label: features})
+                    return res
+            else:  # 查询失败
+                return res
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
