@@ -88,6 +88,7 @@
     <table name="seat_info">
         <insert>INSERT INTO `seat_info` (`row`, `col`) VALUES (%(row)s, %(col)s);</insert>
         <delete>DELETE FROM `seat_info` WHERE `seat_id`=%(seat_id)s;</delete>
+        <delete_all>DELETE FROM `seat_info`;</delete_all>
     </table>
     <table name="self_task">
         <insert>INSERT INTO `self_task` (`pj_id`, `user_id`, `arrangement_date`, `is_done`, `task_title`, `description`) VALUES (%(pj_id)s, %(user_id)s, %(arrangement_date)s, %(is_done)s, %(task_title)s, %(description)s);</insert>

@@ -1087,9 +1087,158 @@ class SeatLocation(QWidget):
         # 布局
         self.lay = QGridLayout()
         # 添加控件
+        self.l_self = QPushButton(u"工位安排")
+        self.l_self.setEnabled(False)
+        self.l_deploy_row = QLabel()
+        self.l_deploy_row.setText(u"行:")
+        self.l_deploy_col = QLabel()
+        self.l_deploy_col.setText(u"列:")
+        self.d_deploy_row = QLineEdit()
+        self.d_deploy_row.setPlaceholderText(u"行数")
+        self.d_deploy_col = QLineEdit()
+        self.d_deploy_col.setPlaceholderText(u"列数")
+        self.bt_deploy_seats = QPushButton(u"部署工位")
+        self.seat_deploy_layout = QGridLayout()  # 工位布局
+
+
+        # 控件布局
+        self.lay.addWidget(self.l_self, 1, 1, 1, 1)
+        self.lay.addWidget(self.l_deploy_row, 2, 2, 1, 1)
+        self.lay.addWidget(self.d_deploy_row, 2, 3, 1, 1)
+        self.lay.addWidget(self.l_deploy_col, 2, 4, 1, 1)
+        self.lay.addWidget(self.d_deploy_col, 2, 5, 1, 1)
+        self.lay.addWidget(self.bt_deploy_seats, 2, 6, 1, 1)
+        self.lay.addLayout(self.seat_deploy_layout, 3, 1, 6, 6)
 
         # 最后self添加布局
         self.setLayout(self.lay)
+        self.setUpCSS()
+
+    def setUpCSS(self):
+        self.l_self.setObjectName("self_label")
+        self.setStyleSheet('''
+                    QPushButton#my_seat{
+                        background-color:green;
+                        border: 2px solid green;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:white;
+                        font: bold 18px;
+                    }
+
+                    QPushButton#my_seat:hover{
+                        background-color:white;
+                        border: 2px solid green;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:green;
+                        font: bold 18px;
+                    }
+
+                    QPushButton#my_seat:pressed{
+                        background-color:white;
+                        border: 2px solid green;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:green;
+                        font: bold 18px;
+                    }
+                    
+                    QPushButton#exist_user{
+                        background-color:red;
+                        border: 2px solid red;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:white;
+                        font: bold 18px;
+                    }
+
+                    QPushButton#exist_user:hover{
+                        background-color:white;
+                        border: 2px solid red;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:red;
+                        font: bold 18px;
+                    }
+
+                    QPushButton#exist_user:pressed{
+                        background-color:white;
+                        border: 2px solid red;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:red;
+                        font: bold 18px;
+                    }
+                    
+                    QPushButton#self_label{
+                        font: 24px;
+                        color:black;
+                        border:none;
+                        background-color:white;
+                        border-left: 10px solid orange;
+                        border-bottom:2px solid orange;
+                    }
+
+                    QLabel{
+                        background-color:rgba(255,165,0,200);
+                        border-style:outset;
+                        border-width:4px;
+                        border-radius:10px;
+                        border-color:rgba(255,255,255,30);
+                        font:bold 15px;
+                        color:rgb(255,255,255);
+                        padding:6px;
+                        text-align: center;
+                    }
+
+                    QPushButton{
+                        background-color:orange;
+                        border: 2px solid orange;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:white;
+                        font: bold 18px;
+                    }
+
+                    QPushButton:hover{
+                        background-color:white;
+                        border: 2px solid orange;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:orange;
+                        font: bold 18px;
+                    }
+
+                    QPushButton:pressed{
+                        background-color:white;
+                        border: 2px solid orange;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:orange;
+                        font: bold 18px;
+                    }
+
+                    QLineEdit{
+                        background-color:rgba(255,165,0,200);
+                        font: bold 15px;
+                        height:30px;
+                        border-radius:5px;
+                        color:white;
+                    }
+                ''')
+
+        self.setFixedSize(800, 800)
+        self.lay.setRowStretch(1, 2)
+        self.lay.setColumnStretch(1, 2)
+        self.lay.setRowStretch(2, 1)
+        for col in range(2, 7):
+            self.lay.setColumnStretch(col, 1)
+
+        map(lambda x: x.setFixedSize(self.width() / 6, self.height() / 22),
+            [self.l_self, self.d_deploy_row,
+             self.d_deploy_col, self.bt_deploy_seats])
+        map(lambda x: x.setFixedSize(self.width()/10, self.height()/22), [self.l_deploy_row, self.l_deploy_col])
 
 
 class SeatDetail(QDialog):
@@ -1245,6 +1394,6 @@ if __name__ == '__main__':
     import sys
 
     app = QApplication(sys.argv)
-    win = InfoWindow()
+    win = SeatLocation()
     win.show()
     sys.exit(app.exec_())

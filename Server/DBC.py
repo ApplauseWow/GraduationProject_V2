@@ -122,8 +122,8 @@ class DBC(object):
     # 一般增删改操作
     def modify_record(self, op, table, para_dict=None):
         """
-        添加新记录
-        :param op: 操作->insert | delete | update
+        一般增删改
+        :param op: 操作->insert | delete | update | 特殊需求
         :param table: 表名
         :param para_dict: 数据字典
         :return:dict{'operation':DBOperation., 'exception': e, 'result':None}
@@ -136,7 +136,7 @@ class DBC(object):
         cursor = self.conn.cursor()
         try:
             row = cursor.execute(sql, para_dict)
-            if row == 1:  # 操作成功
+            if row > 0:  # 操作成功
                 self.conn.commit()  # 必须提交事务才能生效
                 return {'operation': DBOperation.Success, 'exception': None, 'result': None}
             else:  # 操作失败
@@ -146,9 +146,10 @@ class DBC(object):
         finally:
             cursor.close()
 
+    # 特殊查询
     def special_search(self, table, op, data=None):
         """
-        获取表所有信息
+        特殊需求查询
         :param table:　表名
         :param op:　操作
         :param data: 限制条件 {字典} | None

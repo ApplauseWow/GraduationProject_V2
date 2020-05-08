@@ -68,9 +68,12 @@ class CallMethodImplement(object):
         try:
             conn = DBC(client_ip=ip)
             table = self.__obj2table_mapper[data['obj']]
-            start_end = (data['start'], data['num']) if data['num'] else()
-            data.pop('start')
-            data.pop('num')
+            if data.has_key('num'):
+                start_end = (data['start'], data['num'])
+                data.pop('start')
+                data.pop('num')
+            else:
+                start_end = ()
             data.pop('obj')
             res = conn.search_record(table=table, start_end=start_end, limitation=None if data == {} else data)
             res['operation'] = self.__operation_mapper[res['operation']]

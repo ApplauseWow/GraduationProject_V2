@@ -898,30 +898,40 @@ class Management(ManagementWindow):
 
     def __init__(self, user_id, user_type):
         ManagementWindow.__init__(self, user_id, user_type)
-        # 添加顺序一定按照按钮顺序
-        self.page_one = self.ShowUsers(user_id=user_id, user_type=user_type) if UserType(user_type) == UserType.Teacher else self.ShowMyself(user_id=user_id, user_type=user_type)
-        self.page_two = self.ShowNotes(user_id=user_id, user_type=user_type)
-        self.page_three = self.ShowAttendanceCharts(user_id=user_id, user_type=user_type)
-        self.page_four = self.ShowGroups(user_id=user_id, user_type=user_type) if UserType(user_type) == UserType.Teacher else self.ShowMyGroup(user_id=user_id, user_type=user_type)
-        self.page_five = self.ShowProjects(user_id=user_id, user_type=user_type)
-        self.page_six = self.ShowCompetitions(user_id=user_id, user_type=user_type)
-        self.page_seven = self.ShowAchievements(user_id=user_id, user_type=user_type)
-        self.page_eight = self.ShowPermits(user_id=user_id, user_type=user_type)
-        self.page_nine = self.ShowSources(user_id=user_id, user_type=user_type)
-        self.page_ten = self.ShowTasks(user_id=user_id, user_type=user_type)
-        self.page_eleven = self.ShowSeats(user_id=user_id, user_type=user_type)
+        try:
+            # 检查与服务端连接状态
+            check_connection = CR()
+            del check_connection
+            # 添加顺序一定按照按钮顺序
+            self.page_one = self.ShowUsers(user_id=user_id, user_type=user_type) if UserType(
+                user_type) == UserType.Teacher else self.ShowMyself(user_id=user_id, user_type=user_type)
+            self.page_two = self.ShowNotes(user_id=user_id, user_type=user_type)
+            self.page_three = self.ShowAttendanceCharts(user_id=user_id, user_type=user_type)
+            self.page_four = self.ShowGroups(user_id=user_id, user_type=user_type) if UserType(
+                user_type) == UserType.Teacher else self.ShowMyGroup(user_id=user_id, user_type=user_type)
+            self.page_five = self.ShowProjects(user_id=user_id, user_type=user_type)
+            self.page_six = self.ShowCompetitions(user_id=user_id, user_type=user_type)
+            self.page_seven = self.ShowAchievements(user_id=user_id, user_type=user_type)
+            self.page_eight = self.ShowPermits(user_id=user_id, user_type=user_type)
+            self.page_nine = self.ShowSources(user_id=user_id, user_type=user_type)
+            self.page_ten = self.ShowTasks(user_id=user_id, user_type=user_type)
+            self.page_eleven = self.ShowSeats(user_id=user_id, user_type=user_type)
 
-        self.right_layout.addWidget(self.page_one)
-        self.right_layout.addWidget(self.page_two)
-        self.right_layout.addWidget(self.page_three)
-        self.right_layout.addWidget(self.page_four)
-        self.right_layout.addWidget(self.page_five)
-        self.right_layout.addWidget(self.page_six)
-        self.right_layout.addWidget(self.page_seven)
-        self.right_layout.addWidget(self.page_eight)
-        self.right_layout.addWidget(self.page_nine)
-        self.right_layout.addWidget(self.page_ten)
-        self.right_layout.addWidget(self.page_eleven)
+            self.right_layout.addWidget(self.page_one)
+            self.right_layout.addWidget(self.page_two)
+            self.right_layout.addWidget(self.page_three)
+            self.right_layout.addWidget(self.page_four)
+            self.right_layout.addWidget(self.page_five)
+            self.right_layout.addWidget(self.page_six)
+            self.right_layout.addWidget(self.page_seven)
+            self.right_layout.addWidget(self.page_eight)
+            self.right_layout.addWidget(self.page_nine)
+            self.right_layout.addWidget(self.page_ten)
+            self.right_layout.addWidget(self.page_eleven)
+        except Exception as e:
+            print(e)
+            warning = Alert(str(e))
+            warning.exec_()
 
         self.setUpConnect()
 
@@ -2104,14 +2114,83 @@ class Management(ManagementWindow):
     # ---------------------ShowTasks  complete-------------------------------------
 
     class ShowSeats(SeatLocation):
+        """
+        工位部署情况
+        """
 
         def __init__(self, user_id, user_type):
             SeatLocation.__init__(self)
+            self.user_type = user_type
+            self.user_id = user_id
+            if UserType(self.user_type) == UserType.Student:
+                self.bt_deploy_seats.hide()
+                self.d_deploy_col.setEnabled(False)
+                self.d_deploy_row.setEnabled(False)
+            else:
+                pass
+            self.initPage()
 
         def initPage(self):
             """
             用于切换页面后的初始化页面，仅初始化必要控件
             :return: None
+            """
+
+            try:
+                conn = CR()
+                try:
+                    res = conn.GetSeatsDeploymentRequest()
+                    if res['operation'] == ClientRequest.Success:
+                        if len(res['result']) == 0:  # 没有部署
+                            raise Exception("暂未部署工位")
+                        else:  # 生成部署图
+                            # 基本部署
+                            for seat in res['result']:
+                                bt_seat = QPushButton()  # 按钮形式部署
+                                bt_seat.setObjectName("no_user")
+                                bt_seat.setFixedSize(100, 50)
+                                bt_seat.clicked.connect(lambda: self.showTheSeat(seat[ColName2Index['seat']['seat_id']]))  # 传递seat_id
+                                row = seat[ColName2Index['seat']['row']]
+                                col = seat[ColName2Index['seat']['col']]
+                                self.seat_deploy_layout.addWidget(bt_seat, row, col, 1, 1)
+                                bt_seat.setText("{}行{}列".format(row, col))
+                                self.d_deploy_row.setText(str(row))
+                                self.d_deploy_col.setText(str(col))
+                            # 工位安排
+                            res = conn.GetSeatsArrangementRequest()
+                            if res['operation'] == ClientRequest.Success:
+                                # 显示安排情况
+                                for arrangement in res['result']:
+                                    bt_seat = QPushButton()  # 按钮形式部署
+                                    if self.user_id == arrangement[ColName2Index['seat_arrangement']['user_id']]:  # 个人工位
+                                        bt_seat.setObjectName("my_seat")
+                                    else:  # 非个人工位
+                                        bt_seat.setObjectName("exist_user")
+                                    bt_seat.setFixedSize(100, 50)
+                                    bt_seat.clicked.connect(lambda: self.showTheSeat(arrangement[ColName2Index['seat_arrangement']['seat_id']]))  # 传递seat_id
+                                    row = arrangement[ColName2Index['seat_arrangement']['row']]
+                                    col = arrangement[ColName2Index['seat_arrangement']['col']]
+                                    self.seat_deploy_layout.addWidget(bt_seat, row, col, 1, 1)
+                                    bt_seat.setText("{}行{}列".format(row, col))
+                            else:
+                                raise Exception("获取安排失败")
+                    else:
+                        raise Exception("获取部署失败")
+                except Exception as e:
+                    print(e)
+                    warning = Alert(words=str(e))
+                    warning.exec_()
+                finally:
+                    conn.CloseChannel()
+            except Exception as e:
+                print(e)
+                warning = Alert(str(e))
+                warning.exec_()
+
+        def showTheSeat(self, seat_id):
+            """
+            工位详情
+            :return:
             """
 
             pass
