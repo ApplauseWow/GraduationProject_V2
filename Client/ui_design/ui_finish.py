@@ -1249,6 +1249,84 @@ class SeatDetail(QDialog):
 
     def __init__(self):
         QDialog.__init__(self)
+        self.lay = QGridLayout()
+
+        # 添加控件
+        self.l_user = QLabel()
+        self.l_user.setObjectName('user_label')
+        self.l_user.setText("学生:")
+        self.bt_arrangement = QPushButton()
+        self.bt_arrangement.setObjectName("bt")
+        self.bt_arrangement.setText(u"安排学生")
+        self.d_user_name = QComboBox()
+        self.quit = QPushButton()
+        self.quit.setText("关闭窗口")
+        self.quit.setObjectName("bt")
+        self.user_table_layout = QGridLayout()
+
+        # 布局
+        self.lay.addWidget(self.l_user, 1, 1, 1, 1)
+        self.lay.addWidget(self.d_user_name, 1, 2, 1, 3)
+        self.lay.addWidget(self.bt_arrangement, 1, 5, 1, 1)
+        self.lay.addLayout(self.user_table_layout, 3, 1, 4, 6)
+        self.lay.addWidget(self.quit, 1, 6, 1, 1)
+        self.setLayout(self.lay)
+
+        self.setUpCSS()
+
+    def setUpCSS(self):
+        self.setStyleSheet('''
+                    QLabel#user_label{
+                        background-color:rgba(255,165,0,200);
+                        border-style:outset;
+                        border-width:4px;
+                        border-radius:10px;
+                        border-color:rgba(255,255,255,30);
+                        font:bold 15px;
+                        color:rgb(255,255,255);
+                        padding:6px;
+                        text-align: center;
+                    }
+
+                    QPushButton#bt{
+                        background-color:orange;
+                        border: 2px solid orange;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:white;
+                        font: bold 18px;
+                    }
+
+                    QPushButton#bt:hover{
+                        background-color:white;
+                        border: 2px solid orange;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:orange;
+                        font: bold 18px;
+                    }
+
+                    QPushButton#bt:pressed{
+                        background-color:white;
+                        border: 2px solid orange;
+                        border-radius:5px;
+                        margin-right:30px;
+                        color:orange;
+                        font: bold 18px;
+                    }
+                    
+                    QComboBox{
+                        background-color:rgba(255,165,0,200);
+                        font: bold 18px;
+                        height:30px;
+                        border-radius:5px;
+                        color:white;
+                    }
+                ''')
+
+        self.setFixedSize(600, 480)
+        self.setAttribute(Qt.WA_TranslucentBackground)  # 窗体背景透明
+        self.setWindowFlags(Qt.FramelessWindowHint)  # 影藏窗口
 
 
 class Pagination(QWidget):
@@ -1394,6 +1472,6 @@ if __name__ == '__main__':
     import sys
 
     app = QApplication(sys.argv)
-    win = SeatLocation()
+    win = SeatDetail()
     win.show()
     sys.exit(app.exec_())

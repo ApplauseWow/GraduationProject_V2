@@ -35,6 +35,11 @@ service Backend {
     rpc Register(RequestStruct) returns (ResponseStruct) {} // 通用
     rpc ClockInOrOut(RequestStruct) returns (ResponseStruct) {} // 学生专用
 
+    //工位相关
+    rpc DeploySeats(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc GetSeatsDeployment(RequestStruct) returns (ResponseStruct) {} // 通用
+    rpc GetSeatsArrangement(RequestStruct) returns (ResponseStruct) {} // 通用
+    rpc GetTheSeatArrangement(RequestStruct) returns (ResponseStruct) {} // 通用
 }
 
 

@@ -2128,6 +2128,8 @@ class Management(ManagementWindow):
                 self.d_deploy_row.setEnabled(False)
             else:
                 pass
+
+            self.bt_deploy_seats.clicked.connect(self.deploySeats)
             self.initPage()
 
         def initPage(self):
@@ -2187,18 +2189,195 @@ class Management(ManagementWindow):
                 warning = Alert(str(e))
                 warning.exec_()
 
-        def showTheSeat(self, seat_id):
+        def deploySeats(self):
             """
-            工位详情
+            部署工位
             :return:
             """
 
-            pass
+            if self.checkInput():
+                data = {'row': int(self.d_deploy_row.text()), 'col': int(self.d_deploy_col.text())}
+                try:
+                    conn = CR()
+                    try:
+                        res = conn.DeploySeatsRequest(data)
+                        if res['operation'] == ClientRequest.Success:
+                            alright = Alert(words="部署成功", _type='alright')
+                            alright.exec_()
+                            self.initPage()
+                        else:
+                            raise Exception("部署失败")
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=str(e))
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
+                except Exception as e:
+                    print(e)
+                    warning = Alert(str(e))
+                    warning.exec_()
+
+        def showTheSeat(self, seat_id):
+            """
+            工位详情
+            :param seat_id: 工位id
+            :return:
+            """
+
+            seat = self.ASeat(user_type=self.user_type, seat_id=seat_id)
+            seat.update_signal.connect(self.initPage)  # 更新部署图
+            seat.exec_()
+
+        def checkInput(self):
+            """
+            检查非法输入
+            :return:
+            """
+
+            checks = [self.d_deploy_row, self.d_deploy_col]
+            for sz in checks:
+                szText = sz.text()
+                pattern = re.compile('^[0-9]+$')
+                match = pattern.match(szText)
+                if not match:
+                    # QMessageBox.information(self, "提示", "请输入数字.")
+                    msg = Alert(words=u"请输入数字")
+                    msg.exec_()
+                    return False
+                if szText == "":
+                    # QMessageBox.information(self, "提示", "请输入跳转页面.")
+                    msg = Alert(words=u"输入不能为空")
+                    msg.exec_()
+                    return False
+            else:
+                return True
 
         class ASeat(SeatDetail):
+            """
+            工位详情
+            """
 
-            def __init__(self):
+            update_signal = pyqtSignal()  # 更新工位部署图
+
+            def __init__(self, user_type, seat_id):
                 SeatDetail.__init__(self)
+                self.seat_id = seat_id
+                self.arrangement_table = self.ArrangementTable(user_type=user_type)
+                self.user_table_layout.addWidget(self.arrangement_table)
+                if UserType(user_type) == UserType.Student:
+                    self.bt_arrangement.hide()
+                    self.d_user_name.hide()
+                    self.l_user.hide()
+
+                # 绑定信号槽函数
+                self.arrangement_table.update_signal.connect(self.update_signal.emit)
+
+            class ArrangementTable(Page):
+                """
+                安排表
+                """
+
+                update_signal = pyqtSignal()
+
+                def __init__(self, user_type, seat_id):
+                    Page.__init__(self)
+                    self.user_type = user_type
+                    self.seat_id = seat_id
+                    self.col_list = TABLE_COLUMN_DICT[UserType(user_type)]['seat_arrangement']  # 获取表头信息
+                    self.initializedModel()
+                    self.setUpConnect()
+                    self.updateStatus()
+
+                def initializedModel(self):
+                    try:
+                        conn = CR()
+                        try:
+                            data = {'seat_id': self.seat_id}
+                            res = conn.GetTheSeatArrangementRequest(data)
+                            if res['operation'] == ClientRequest.Success:
+                                # 显示数据
+                                self.currentPage = 1
+                                self.totalRecordCount = len(res['result'])
+                                if self.totalRecordCount % self.pageRecordCount == 0:
+                                    if self.totalRecordCount != 0:
+                                        self.totalPage = self.totalRecordCount / self.pageRecordCount
+                                    else:
+                                        self.totalPage = 1
+                                else:
+                                    self.totalPage = int(self.totalRecordCount / self.pageRecordCount) + 1
+                                self.queryRecord(0)
+                            else:
+                                raise Exception("获取安排信息失败")
+                        except Exception as e:
+                            print(e)
+                            warning = Alert(words=str(e))
+                            warning.exec_()
+                        finally:
+                            conn.CloseChannel()
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(str(e))
+                        warning.exec_()
+
+                def queryRecord(self, limitIndex):
+                    """
+                    重写查询记录
+                    :param limitIndex:从第limitIndex条开始
+                    :return:
+                    """
+
+                    try:
+                        conn = CR()
+                        try:
+                            data = {'seat_id': self.seat_id}
+                            res = conn.GetTheSeatArrangementRequest(data)
+                            if res['operation'] == ClientRequest.Success:
+                                users = res['result']
+                                self.addRecords(self.col_list, users)
+                            else:
+                                raise Exception("获取安排信息失败")
+                        except Exception as e:
+                            print(e)
+                            warning = Alert(words=str(e))
+                            warning.exec_()
+                        finally:
+                            conn.CloseChannel()
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(str(e))
+                        warning.exec_()
+
+                def operationOnBtClicked(self, primary_key):
+                    """
+                    重写操作按钮
+                    :param primary_key: 主键
+                    :return: None
+                    """
+
+                    try:
+                        conn = CR()
+                        try:
+                            # 更新
+                            res = conn.DeleteTheArrangement(primary_key)
+                            if res['operation'] == ClientRequest.Success:
+                                alright = Alert(words=u"操作成功！", _type='alright')
+                                alright.exec_()
+                                self.initializedModel()  # 重新刷新页面色
+                                self.updateStatus()
+                                self.update_signal.emit()
+                            else:
+                                raise res['exception']
+                        except Exception as e:
+                            print(e)
+                            warning = Alert(str(e))
+                            warning.exec_()
+                        finally:
+                            conn.CloseChannel()
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(str(e))
+                        warning.exec_()
 
     # ---------------------ShowSeats  complete--------------------------------------
 

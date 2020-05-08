@@ -94,4 +94,8 @@
         <insert>INSERT INTO `self_task` (`pj_id`, `user_id`, `arrangement_date`, `is_done`, `task_title`, `description`) VALUES (%(pj_id)s, %(user_id)s, %(arrangement_date)s, %(is_done)s, %(task_title)s, %(description)s);</insert>
         <delete>DELETE FROM `self_task` WHERE `task_id`=%(task_id)s;</delete>
     </table>
+    <table name="join_search">
+        <get_all_seats_arrangement>SELECT arrangement_id, row, col, user_name, is_leader, a.seat_id, a.user_id  FROM seat_info JOIN seat_arrangement a ON seat_info.seat_id = a.seat_id JOIN user_info u ON a.user_id = u.user_id;</get_all_seats_arrangement>
+        <get_the_seat_arrangement>SELECT arrangement_id, row, col, user_name, is_leader, a.seat_id, a.user_id  FROM seat_info JOIN seat_arrangement a ON seat_info.seat_id = a.seat_id JOIN user_info u ON a.user_id = u.user_id WHERE a.seat_id = %(seat_id)s;</get_the_seat_arrangement>
+    </table>
 </sql>

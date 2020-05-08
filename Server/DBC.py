@@ -147,11 +147,12 @@ class DBC(object):
             cursor.close()
 
     # 特殊查询
-    def special_search(self, table, op, data=None):
+    def special_search(self, table, op, start_end=(), data=None):
         """
         特殊需求查询
         :param table:　表名
         :param op:　操作
+        :param start_end: 限制条数
         :param data: 限制条件 {字典} | None
         :return:dict{'operation':DBOperation., 'exception': e, 'result':results | None}
         """
@@ -172,3 +173,5 @@ class DBC(object):
             return {'operation': DBOperation.Failure, 'exception': e, 'result': None}
         finally:
             cursor.close()
+
+

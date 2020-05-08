@@ -363,7 +363,7 @@ class CR(object):
     def GetSeatsDeploymentRequest(self):
         """
         获取工位部署情况(所有工位信息)
-        :return:(...)
+        :return:{...}
         """
 
         try:
@@ -378,12 +378,40 @@ class CR(object):
     def GetSeatsArrangementRequest(self):
         """
         获取工位安排情况(所有工位安排信息)
-        :return:(...)
+        :return:{...}
         """
 
         try:
-            data = {'obj': 'seat_arrangement'}
+            data = {}
             response = self.stub.GetSeatsArrangement(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            return res
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('请求失败')
+
+    def GetTheSeatArrangementRequest(self, data):
+        """
+        获取此工位安排情况
+        :return:'result': ((arrangement_id, row, col, name, is_leader, seat_id), ...)
+        """
+
+        try:
+            response = self.stub.GetTheSeatArrangement(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            return res
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('请求失败')
+
+    def DeploySeatsRequest(self, data):
+        """
+        获取此工位安排情况
+        :return:{...}
+        """
+
+        try:
+            response = self.stub.DeploySeats(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
             res = pickle.loads(response.result)
             return res
         except Exception as e:  # 界面捕捉异常并弹出警告窗口

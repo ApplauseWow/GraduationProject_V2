@@ -21,7 +21,8 @@ class CallMethodImplement(object):
     __obj2table_mapper = {  # 对象映射到表
         'note': 'note_info',  # 公告
         'user': 'user_info',  # 用户
-        'attendance': 'attendance_record'  # 考勤记录
+        'attendance': 'attendance_record',  # 考勤记录,
+        'seat': 'seat_info'  # 工位
         # ...
     }
 
@@ -188,10 +189,16 @@ class CallMethodImplement(object):
             conn = DBC(client_ip=ip)
             table = self.__obj2table_mapper[data['obj']]
             data.pop('obj')
+            if data.has_key('num'):
+                start_end = (data['start'], data['num'])
+                data.pop('start')
+                data.pop('num')
+            else:
+                start_end = ()
             data['record_type'] = AttendanceType.ClockIn.value
-            res_clock_in = conn.special_search(table=table, op='self_timestamp_search', data=data)
+            res_clock_in = conn.special_search(table=table, start_end=start_end, op='self_timestamp_search', data=data)
             data['record_type'] = AttendanceType.ClockOut.value
-            res_clock_out = conn.special_search(table=table, op='self_timestamp_search', data=data)
+            res_clock_out = conn.special_search(table=table, start_end=start_end, op='self_timestamp_search', data=data)
             if res_clock_in['operation'] == DBOperation.Failure or res_clock_out['operation'] == DBOperation.Failure:  # 其一操作失败
                 res = {'operation': ClientRequest.Failure, 'exception': Exception('fail to get the clock in/out timestamp'), 'result': None}
             else:  # 双双成功
@@ -221,7 +228,13 @@ class CallMethodImplement(object):
             conn = DBC(client_ip=ip)
             table = self.__obj2table_mapper[data['obj']]
             data.pop('obj')
-            res = conn.special_search(table=table, op='self_week_search', data=data)
+            if data.has_key('num'):
+                start_end = (data['start'], data['num'])
+                data.pop('start')
+                data.pop('num')
+            else:
+                start_end = ()
+            res = conn.special_search(table=table, start_end=start_end, op='self_week_search', data=data)
             res['operation'] = self.__operation_mapper[res['operation']]
             if res['operation'] == ClientRequest.Failure:  # 失败
                 return res
@@ -256,8 +269,14 @@ class CallMethodImplement(object):
 
         try:
             conn = DBC(client_ip=ip)
-            res_clock_in = conn.special_search(self.__obj2table_mapper[data['obj']], 'all_each_time_count', {'record_type': AttendanceType.ClockIn.value})
-            res_clock_out = conn.special_search(self.__obj2table_mapper[data['obj']], 'all_each_time_count', {'record_type': AttendanceType.ClockIn.value})
+            if data.has_key('num'):
+                start_end = (data['start'], data['num'])
+                data.pop('start')
+                data.pop('num')
+            else:
+                start_end = ()
+            res_clock_in = conn.special_search(table=self.__obj2table_mapper[data['obj']], start_end=start_end, op='all_each_time_count', data={'record_type': AttendanceType.ClockIn.value})
+            res_clock_out = conn.special_search(table=self.__obj2table_mapper[data['obj']], start_end=start_end, op='all_each_time_count', data={'record_type': AttendanceType.ClockIn.value})
             if res_clock_in['operation'] == DBOperation.Failure or res_clock_out['operation'] == DBOperation.Failure:  # 其一操作失败
                 res = {'operation': ClientRequest.Failure, 'exception': Exception('fail to get the clock in and out count each hour'), 'result': None}
             else:  # 双双成功
@@ -285,7 +304,13 @@ class CallMethodImplement(object):
 
         try:
             conn = DBC(client_ip=ip)
-            res_today = conn.special_search(self.__obj2table_mapper[data['obj']], 'today_clockin_count')  # _type中是字典与sql_mapper中名称必须一致
+            if data.has_key('num'):
+                start_end = (data['start'], data['num'])
+                data.pop('start')
+                data.pop('num')
+            else:
+                start_end = ()
+            res_today = conn.special_search(table=self.__obj2table_mapper[data['obj']], start_end=start_end, op='today_clockin_count')  # _type中是字典与sql_mapper中名称必须一致
             res_total = conn.count_record(self.__obj2table_mapper['user'], {'user_type': UserType.Student.value})
             if res_today['operation'] == DBOperation.Failure or res_total['operation'] == DBOperation.Failure:
                 res = {'operation': ClientRequest.Failure, 'exception': Exception('fail to get the clock in rate today'), 'result': None}
@@ -338,6 +363,7 @@ class CallMethodImplement(object):
         :param data: 请求参数
         :return: dict{'operation': , 'exception': , 'result': }
         """
+
         try:
             image_cache = data['image_cache']  # 人脸图像
             label = str(data['user_id'])  # 用户id
@@ -392,6 +418,80 @@ class CallMethodImplement(object):
                     return res
             else:  # 查询失败
                 return res
+        except Exception as e:
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+
+    def DeploySeats(self, ip, data):
+        """
+        获取所有对象
+        :param ip: 用于识别客户端
+        :param data: 请求参数
+        :return: dict{'operation': , 'exception': , 'result': }
+        """
+
+        try:
+            conn = DBC(client_ip=ip)
+            table = self.__obj2table_mapper[data['obj']]
+            data.pop('obj')
+            # 插入工位
+            for row in data['row']:
+                for col in data['col']:
+                    res = conn.modify_record('insert', table, {'row': row, 'col': col})
+                    res['operation'] = self.__operation_mapper[res['operation']]
+                    if res['operation'] == ClientRequest.Failure:
+                        res = conn.modify_record(op='delete_all', table=table)
+                        res['operation'] = self.__operation_mapper[res['operation']]
+                        if res['operation'] == ClientRequest.Failure:
+                            raise Exception("清除未完成部署失败")
+                        else:
+                            raise Exception("部署中断")
+                    else:
+                        pass
+            return {'operation': ClientRequest.Success, 'exception': None, 'result': None}
+        except Exception as e:
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+
+    def GetSeatsArrangement(self, ip, data):
+        """
+        获取所有工位安排
+        :param ip: 用于识别客户端
+        :param data: 请求参数
+        :return: dict{'operation': , 'exception': , 'result': }
+        """
+
+        try:
+            conn = DBC(client_ip=ip)
+            if data.has_key('num'):
+                start_end = (data['start'], data['num'])
+                data.pop('start')
+                data.pop('num')
+            else:
+                start_end = ()
+            res = conn.special_search(table='joint_search', start_end=start_end, op='get_all_seats_arrangement')
+            res['operation'] = self.__operation_mapper[res['operation']]
+            return res
+        except Exception as e:
+            return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
+
+    def GetTheSeatArrangement(self, ip, data):
+        """
+       获取此工位安排
+       :param ip: 用于识别客户端
+       :param data: 请求参数
+       :return: dict{'operation': , 'exception': , 'result': }
+       """
+
+        try:
+            conn = DBC(client_ip=ip)
+            if data.has_key('num'):
+                start_end = (data['start'], data['num'])
+                data.pop('start')
+                data.pop('num')
+            else:
+                start_end = ()
+            res = conn.special_search(table='joint_search', op='get_the_seat_arrangement', start_end=start_end, data=data)
+            res['operation'] = self.__operation_mapper[res['operation']]
+            return res
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 

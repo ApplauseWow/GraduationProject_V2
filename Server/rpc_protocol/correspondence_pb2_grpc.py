@@ -109,6 +109,26 @@ class BackendStub(object):
                 request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
                 response_deserializer=correspondence__pb2.ResponseStruct.FromString,
                 )
+        self.DeploySeats = channel.unary_unary(
+                '/Backend/DeploySeats',
+                request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
+                response_deserializer=correspondence__pb2.ResponseStruct.FromString,
+                )
+        self.GetSeatsDeployment = channel.unary_unary(
+                '/Backend/GetSeatsDeployment',
+                request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
+                response_deserializer=correspondence__pb2.ResponseStruct.FromString,
+                )
+        self.GetSeatsArrangement = channel.unary_unary(
+                '/Backend/GetSeatsArrangement',
+                request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
+                response_deserializer=correspondence__pb2.ResponseStruct.FromString,
+                )
+        self.GetTheSeatArrangement = channel.unary_unary(
+                '/Backend/GetTheSeatArrangement',
+                request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
+                response_deserializer=correspondence__pb2.ResponseStruct.FromString,
+                )
 
 
 class BackendServicer(object):
@@ -236,6 +256,31 @@ class BackendServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def DeploySeats(self, request, context):
+        """工位相关
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetSeatsDeployment(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetSeatsArrangement(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetTheSeatArrangement(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_BackendServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -331,6 +376,26 @@ def add_BackendServicer_to_server(servicer, server):
             ),
             'ClockInOrOut': grpc.unary_unary_rpc_method_handler(
                     servicer.ClockInOrOut,
+                    request_deserializer=correspondence__pb2.RequestStruct.FromString,
+                    response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
+            ),
+            'DeploySeats': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeploySeats,
+                    request_deserializer=correspondence__pb2.RequestStruct.FromString,
+                    response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
+            ),
+            'GetSeatsDeployment': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetSeatsDeployment,
+                    request_deserializer=correspondence__pb2.RequestStruct.FromString,
+                    response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
+            ),
+            'GetSeatsArrangement': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetSeatsArrangement,
+                    request_deserializer=correspondence__pb2.RequestStruct.FromString,
+                    response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
+            ),
+            'GetTheSeatArrangement': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetTheSeatArrangement,
                     request_deserializer=correspondence__pb2.RequestStruct.FromString,
                     response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
             ),
@@ -643,6 +708,70 @@ class Backend(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Backend/ClockInOrOut',
+            correspondence__pb2.RequestStruct.SerializeToString,
+            correspondence__pb2.ResponseStruct.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DeploySeats(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Backend/DeploySeats',
+            correspondence__pb2.RequestStruct.SerializeToString,
+            correspondence__pb2.ResponseStruct.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetSeatsDeployment(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Backend/GetSeatsDeployment',
+            correspondence__pb2.RequestStruct.SerializeToString,
+            correspondence__pb2.ResponseStruct.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetSeatsArrangement(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Backend/GetSeatsArrangement',
+            correspondence__pb2.RequestStruct.SerializeToString,
+            correspondence__pb2.ResponseStruct.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetTheSeatArrangement(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Backend/GetTheSeatArrangement',
             correspondence__pb2.RequestStruct.SerializeToString,
             correspondence__pb2.ResponseStruct.FromString,
             options, channel_credentials,
