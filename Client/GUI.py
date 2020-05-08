@@ -902,10 +902,26 @@ class Management(ManagementWindow):
         self.page_one = self.ShowUsers(user_id=user_id, user_type=user_type) if UserType(user_type) == UserType.Teacher else self.ShowMyself(user_id=user_id, user_type=user_type)
         self.page_two = self.ShowNotes(user_id=user_id, user_type=user_type)
         self.page_three = self.ShowAttendanceCharts(user_id=user_id, user_type=user_type)
+        self.page_four = self.ShowGroups(user_id=user_id, user_type=user_type) if UserType(user_type) == UserType.Teacher else self.ShowMyGroup(user_id=user_id, user_type=user_type)
+        self.page_five = self.ShowProjects(user_id=user_id, user_type=user_type)
+        self.page_six = self.ShowCompetitions(user_id=user_id, user_type=user_type)
+        self.page_seven = self.ShowAchievements(user_id=user_id, user_type=user_type)
+        self.page_eight = self.ShowPermits(user_id=user_id, user_type=user_type)
+        self.page_nine = self.ShowSources(user_id=user_id, user_type=user_type)
+        self.page_ten = self.ShowTasks(user_id=user_id, user_type=user_type)
+        self.page_eleven = self.ShowSeats(user_id=user_id, user_type=user_type)
 
         self.right_layout.addWidget(self.page_one)
         self.right_layout.addWidget(self.page_two)
         self.right_layout.addWidget(self.page_three)
+        self.right_layout.addWidget(self.page_four)
+        self.right_layout.addWidget(self.page_five)
+        self.right_layout.addWidget(self.page_six)
+        self.right_layout.addWidget(self.page_seven)
+        self.right_layout.addWidget(self.page_eight)
+        self.right_layout.addWidget(self.page_nine)
+        self.right_layout.addWidget(self.page_ten)
+        self.right_layout.addWidget(self.page_eleven)
 
         self.setUpConnect()
 
@@ -927,8 +943,11 @@ class Management(ManagementWindow):
         try:
             self.setEnabled(False)
             index = self.menu_dict[self.sender().objectName()]
-            self.right_layout.setCurrentIndex(index)
-            self.right_layout.widget(index).initPage()  # 所有组内控件重写一个初始化函数解决了堆叠控件切换后刷新问题
+            if index != self.menu_dict['exit']:
+                self.right_layout.setCurrentIndex(index)
+                self.right_layout.widget(index).initPage()  # 所有组内控件重写一个初始化函数解决了堆叠控件切换后刷新问题
+            else:  # 退出按钮
+                self.close()
         except Exception as e:
             print(e)
             warning = Alert(words=u"切换失败！")
@@ -1295,7 +1314,6 @@ class Management(ManagementWindow):
                     print(e)
                     warning = Alert(str(e))
                     warning.exec_()
-
 
     # ---------------------ShowNote  complete------------------------
 
@@ -1930,19 +1948,194 @@ class Management(ManagementWindow):
 
     # ---------------------ShowAttendanceCharts  complete------------------------
 
+    class ShowGroups(GroupTable):
+
+        def __init__(self, user_id, user_type):
+            GroupTable.__init__(self)
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+        class AGroup(GroupDetail):
+
+            def __init__(self):
+                GroupDetail.__init__(self)
+
+    # ---------------------ShowGroups  complete----------------------------------
+
+    class ShowMyGroup(MyGroup):
+
+        def __init__(self, user_id, user_type):
+            MyGroup.__init__(self)
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+    # ---------------------ShowMyGroup  complete----------------------------------
+
+    class ShowSources(SourceTable):
+
+        def __init__(self, user_id, user_type):
+            SourceTable.__init__(self)
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+        class ASource(SourceDetail):
+
+            def __init__(self):
+                SourceDetail.__init__(self)
+
+    # ---------------------ShowSources  complete----------------------------------
+
+    class ShowPermits(PermitTable):
+
+        def __init__(self, user_id, user_type):
+            PermitTable.__init__(self)
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+        class APermit(PermitDetail):
+
+            def __init__(self):
+                PermitDetail.__init__(self)
+
+    # ---------------------ShowPermits  complete----------------------------------
+
+    class ShowAchievements(AchievementTable):
+
+        def __init__(self, user_id, user_type):
+            AchievementTable.__init__(self)
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+        class AAchievement(AchievementDetail):
+
+            def __init__(self):
+                AchievementDetail.__init__(self)
+
+    # ---------------------ShowAchievements  complete----------------------------
+
+    class ShowCompetitions(CompetitionTable):
+
+        def __init__(self, user_id, user_type):
+            CompetitionTable.__init__(self)
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+        class ACompetition(CompetitionDetail):
+
+            def __init__(self):
+                CompetitionDetail.__init__(self)
+
+    # ---------------------ShowCompetitions  complete---------------------------
+
+    class ShowProjects(ProjectTable):
+
+        def __init__(self, user_id, user_type):
+            ProjectTable.__init__(self)
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+        class AProject(ProjectDetail):
+
+            def __init__(self):
+                ProjectDetail.__init__(self)
+
+    # ---------------------ShowProjects  complete----------------------------------
+
+    class ShowTasks(TaskArrangement):
+
+        def __init__(self, user_id, user_type):
+            TaskArrangement.__init__(self)
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+        class ATask(TaskDetail):
+
+            def __init__(self):
+                TaskDetail.__init__(self)
+
+    # ---------------------ShowTasks  complete-------------------------------------
+
+    class ShowSeats(SeatLocation):
+
+        def __init__(self, user_id, user_type):
+            SeatLocation.__init__(self)
+
+        def initPage(self):
+            """
+            用于切换页面后的初始化页面，仅初始化必要控件
+            :return: None
+            """
+
+            pass
+
+        class ASeat(SeatDetail):
+
+            def __init__(self):
+                SeatDetail.__init__(self)
+
+    # ---------------------ShowSeats  complete--------------------------------------
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    # win_ = Management(201610414206, 0)
-    # win_.show()
+    win_ = Management(201610414206, 0)
+    win_.show()
 
     # win2 = MyInfo()
     # win3 = SysHome().Register()
 
     # win4 = Alert()
 
-    win1 = SysHome()
-    win1.show()
+    # win1 = SysHome()
+    # win1.show()
 
     # win2.show()
     # win3.show()

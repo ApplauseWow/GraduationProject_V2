@@ -1746,3 +1746,42 @@
 127.0.0.1 : CheckIdentityByFace at Fri May  8 00:56:53 2020
 127.0.0.1 : InsertAObject at Fri May  8 00:56:55 2020
 127.0.0.1 : CheckIdentityByFace at Fri May  8 00:57:00 2020, but fail, as 未知人脸
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:15:34 2020, but fail, as 未知人脸
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:15:37 2020, but fail, as 未知人脸
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:15:39 2020, but fail, as 未知人脸
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:15:41 2020, but fail, as 未知人脸
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:15:43 2020, but fail, as 未知人脸
+127.0.0.1 : Register at Fri May  8 10:15:56 2020
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:15:58 2020
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:02 2020
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:06 2020, but fail, as 未知人脸
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:08 2020, but fail, as 未知人脸
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:09 2020
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:14 2020
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:20 2020
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:24 2020, but fail, as 未知人脸
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:26 2020, but fail, as 未知人脸
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:28 2020
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:16:44 2020
+127.0.0.1 : GetTheObject at Fri May  8 10:16:44 2020
+127.0.0.1 : GetRecordsCount at Fri May  8 10:16:45 2020
+127.0.0.1 : GetAllObjects at Fri May  8 10:16:45 2020
+127.0.0.1 : GetWorkHourEverYDay at Fri May  8 10:16:45 2020
+127.0.0.1 : GetClockInOrOutTimeStamp at Fri May  8 10:16:45 2020
+127.0.0.1 : GetRecordsCount at Fri May  8 10:16:50 2020
+127.0.0.1 : GetAllObjects at Fri May  8 10:16:50 2020
+127.0.0.1 : GetWorkHourEverYDay at Fri May  8 10:16:54 2020
+127.0.0.1 : GetClockInOrOutTimeStamp at Fri May  8 10:16:54 2020
+127.0.0.1 : GetTheObject at Fri May  8 10:17:23 2020
+127.0.0.1 : ModifyTheObject at Fri May  8 10:17:34 2020
+127.0.0.1 : GetTheObject at Fri May  8 10:17:35 2020
+127.0.0.1 : GetRecordsCount at Fri May  8 10:18:01 2020
+127.0.0.1 : GetAllObjects at Fri May  8 10:18:01 2020
+127.0.0.1 : GetAllObjects at Fri May  8 10:18:08 2020
+127.0.0.1 : GetAllObjects at Fri May  8 10:18:10 2020
+127.0.0.1 : GetAllObjects at Fri May  8 10:18:11 2020
+127.0.0.1 : GetAllObjects at Fri May  8 10:18:16 2020
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:18:23 2020
+127.0.0.1 : InsertAObject at Fri May  8 10:18:27 2020
+127.0.0.1 : CheckIdentityByFace at Fri May  8 10:18:32 2020
+127.0.0.1 : InsertAObject at Fri May  8 10:18:33 2020
