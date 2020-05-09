@@ -2130,7 +2130,7 @@ class Management(ManagementWindow):
                 pass
 
             self.bt_deploy_seats.clicked.connect(self.deploySeats)
-            self.initPage()
+            # self.initPage()
 
         def initPage(self):
             """
@@ -2146,36 +2146,42 @@ class Management(ManagementWindow):
                         if len(res['result']) == 0:  # 没有部署
                             raise Exception("暂未部署工位")
                         else:  # 生成部署图
-                            # 基本部署
+                            # 获取安排
+                            res_arrangement = conn.GetSeatsArrangementRequest()
+                            if res_arrangement['operation'] == ClientRequest.Success:
+                                arrangements = res_arrangement['result']  # 获取部署安排
+                            else:
+                                warning = Alert(words="获取安排失败")
+                                warning.exec_()
+                                arrangements = None
+                            # 部署
+                            for num in range(self.seat_deploy_layout.count()):
+                                self.seat_deploy_layout.itemAt(num).widget().deleteLater()
                             for seat in res['result']:
-                                bt_seat = QPushButton()  # 按钮形式部署
-                                bt_seat.setObjectName("no_user")
-                                bt_seat.setFixedSize(100, 50)
-                                bt_seat.clicked.connect(lambda: self.showTheSeat(seat[ColName2Index['seat']['seat_id']]))  # 传递seat_id
+                                seat_id = seat[ColName2Index['seat']['seat_id']]  # 工位id
+                                # 工位坐标
                                 row = seat[ColName2Index['seat']['row']]
                                 col = seat[ColName2Index['seat']['col']]
-                                self.seat_deploy_layout.addWidget(bt_seat, row, col, 1, 1)
-                                bt_seat.setText("{}行{}列".format(row, col))
-                                self.d_deploy_row.setText(str(row))
-                                self.d_deploy_col.setText(str(col))
-                            # 工位安排
-                            res = conn.GetSeatsArrangementRequest()
-                            if res['operation'] == ClientRequest.Success:
-                                # 显示安排情况
-                                for arrangement in res['result']:
-                                    bt_seat = QPushButton()  # 按钮形式部署
-                                    if self.user_id == arrangement[ColName2Index['seat_arrangement']['user_id']]:  # 个人工位
-                                        bt_seat.setObjectName("my_seat")
-                                    else:  # 非个人工位
-                                        bt_seat.setObjectName("exist_user")
-                                    bt_seat.setFixedSize(100, 50)
-                                    bt_seat.clicked.connect(lambda: self.showTheSeat(arrangement[ColName2Index['seat_arrangement']['seat_id']]))  # 传递seat_id
-                                    row = arrangement[ColName2Index['seat_arrangement']['row']]
-                                    col = arrangement[ColName2Index['seat_arrangement']['col']]
-                                    self.seat_deploy_layout.addWidget(bt_seat, row, col, 1, 1)
-                                    bt_seat.setText("{}行{}列".format(row, col))
+                                bt_seat = self.createASeat(seat_id, row, col)
+                                self.seat_deploy_layout.addWidget(bt_seat, row-1, col-1, 1, 1)
+                                if arrangements:  # 有安排信息
+                                    checks = filter(
+                                        lambda arrangement: True if seat[ColName2Index['seat']['seat_id']] == arrangement[
+                                            ColName2Index['seat_arrangement']['seat_id']] else False, arrangements)
+                                    if checks:  # 工位有人
+                                        mine = filter(lambda check: True if self.user_id == check[
+                                            ColName2Index['seat_arrangement']['user_id']] else False, checks)
+                                        if mine:  # 个人工位
+                                            bt_seat.setObjectName("my_seat")
+                                        else:  # 非个人工位
+                                            bt_seat.setObjectName("exist_user")
+                                    else:  # 工位没人
+                                        bt_seat.setObjectName("no_user")
+                                else:  # 没安排
+                                    bt_seat.setObjectName("no_user")
                             else:
-                                raise Exception("获取安排失败")
+                                self.d_deploy_row.setText(str(res['result'][-1][ColName2Index['seat']['row']]))
+                                self.d_deploy_col.setText(str(res['result'][-1][ColName2Index['seat']['col']]))
                     else:
                         raise Exception("获取部署失败")
                 except Exception as e:
@@ -2188,6 +2194,21 @@ class Management(ManagementWindow):
                 print(e)
                 warning = Alert(str(e))
                 warning.exec_()
+
+        def createASeat(self, seat_id, row, col):
+            """
+            生成一个工位(按钮)
+            :param seat_id:工位id
+            :param row: 行
+            :param col: 列
+            :return:
+            """
+
+            bt_seat = QPushButton()
+            bt_seat.setFixedSize(100, 50)
+            bt_seat.setText("{}行{}列".format(row, col))
+            bt_seat.clicked.connect(lambda: self.showTheSeat(seat_id))  # 传递seat_id
+            return bt_seat
 
         def deploySeats(self):
             """
@@ -2221,6 +2242,7 @@ class Management(ManagementWindow):
         def showTheSeat(self, seat_id):
             """
             工位详情
+            :param sender: 所点击的按钮
             :param seat_id: 工位id
             :return:
             """
@@ -2263,15 +2285,79 @@ class Management(ManagementWindow):
             def __init__(self, user_type, seat_id):
                 SeatDetail.__init__(self)
                 self.seat_id = seat_id
-                self.arrangement_table = self.ArrangementTable(user_type=user_type)
+                self.arrangement_table = self.ArrangementTable(user_type=user_type, seat_id=self.seat_id)
                 self.user_table_layout.addWidget(self.arrangement_table)
                 if UserType(user_type) == UserType.Student:
                     self.bt_arrangement.hide()
                     self.d_user_name.hide()
                     self.l_user.hide()
+                    self.d_is_leader.hide()
+                else:
+                    self.initUserComboBox()
 
                 # 绑定信号槽函数
                 self.arrangement_table.update_signal.connect(self.update_signal.emit)
+                self.bt_arrangement.clicked.connect(self.arrangeStudent)
+                self.quit.clicked.connect(self.close)
+
+            def initUserComboBox(self):
+                """
+                初始化学生下拉框
+                :return:
+                """
+
+                try:
+                    conn = CR()
+                    try:
+                        data = {'user_type': UserType.Student.value}
+                        res = conn.GetAllStudentsRequest(data)  # 获取所有学生名单
+                        if res['operation'] == ClientRequest.Success:
+                            # 生成下拉列表
+                            for stu in res['result']:
+                                self.d_user_name.addItem(stu[ColName2Index['user']['user_name']], stu[ColName2Index['user']['user_id']])
+                            self.d_user_name.setCurrentIndex(-1)
+                        else:
+                            raise Exception("获取学生失败")
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=str(e))
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
+                except Exception as e:
+                    print(e)
+                    warning = Alert(str(e))
+                    warning.exec_()
+
+            def arrangeStudent(self):
+                """
+                给学生安排工位
+                :return:
+                """
+
+                try:
+                    conn = CR()
+                    try:
+                        data = {'user_id': self.d_user_name.currentData(), 'seat_id': self.seat_id, 'is_leader': self.d_is_leader.currentData()}
+                        res = conn.ArrangeTheStudentHereRequest(data)  # 获取所有学生名单
+                        if res['operation'] == ClientRequest.Success:
+                            alright = Alert(words=u"安排成功", _type='alright')
+                            alright.exec_()
+                            self.arrangement_table.initializedModel()  # 重新刷新页面
+                            self.arrangement_table.updateStatus()
+                            self.update_signal.emit()
+                        else:
+                            raise Exception("安排失败")
+                    except Exception as e:
+                        print(e)
+                        warning = Alert(words=str(e))
+                        warning.exec_()
+                    finally:
+                        conn.CloseChannel()
+                except Exception as e:
+                    print(e)
+                    warning = Alert(str(e))
+                    warning.exec_()
 
             class ArrangementTable(Page):
                 """
@@ -2293,6 +2379,7 @@ class Management(ManagementWindow):
                     try:
                         conn = CR()
                         try:
+                            # 初始化表格
                             data = {'seat_id': self.seat_id}
                             res = conn.GetTheSeatArrangementRequest(data)
                             if res['operation'] == ClientRequest.Success:
@@ -2330,7 +2417,7 @@ class Management(ManagementWindow):
                     try:
                         conn = CR()
                         try:
-                            data = {'seat_id': self.seat_id}
+                            data = {'seat_id': self.seat_id, 'start': limitIndex, 'num': self.pageRecordCount}
                             res = conn.GetTheSeatArrangementRequest(data)
                             if res['operation'] == ClientRequest.Success:
                                 users = res['result']
@@ -2359,11 +2446,11 @@ class Management(ManagementWindow):
                         conn = CR()
                         try:
                             # 更新
-                            res = conn.DeleteTheArrangement(primary_key)
+                            res = conn.DeleteTheArrangementRequest(primary_key)
                             if res['operation'] == ClientRequest.Success:
                                 alright = Alert(words=u"操作成功！", _type='alright')
                                 alright.exec_()
-                                self.initializedModel()  # 重新刷新页面色
+                                self.initializedModel()  # 重新刷新页面
                                 self.updateStatus()
                                 self.update_signal.emit()
                             else:
@@ -2384,7 +2471,7 @@ class Management(ManagementWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win_ = Management(201610414206, 0)
+    win_ = Management(201610414206, 1)
     win_.show()
 
     # win2 = MyInfo()

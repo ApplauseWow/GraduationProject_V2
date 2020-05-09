@@ -78,12 +78,13 @@ class DBC(object):
             cursor.close()
 
     # 一般查询操作
-    def search_record(self, table, start_end=(), limitation=None):
+    def search_record(self, table, start_end=(), limitation=None, op='limited_search'):
         """
         获取表所有信息
         :param table:　表名
         :param start_end:　(起始索引号, 一页总条数) | ()
         :param limitation: 限制条件 {字典} | None
+        :param op: 操作， 用于特殊名称查询
         :return:dict{'operation':DBOperation., 'exception': e, 'result':results | None}
         """
 
@@ -91,19 +92,23 @@ class DBC(object):
             sql = "select * from %s;" % table
         elif start_end != () and not limitation:  # 需要分页，但没有限制
             sql = "select * from %s limit %s, %s;" % (table, start_end[0], start_end[1])
-        elif start_end != () and limitation: # 需要分页且有限制条件
+        elif start_end != () and limitation:  # 需要分页且有限制条件
             tree = ET.parse(self.__sql_mapper)
             root = tree.getroot()
             res = filter(lambda x: x.get('name') == table, root.findall('table'))  # 找到table的sql
-            sql = res[0].find('limited_search').text
+            sql = res[0].find(op).text
             limitation['start'] = start_end[0]
             limitation['num'] = start_end[1]
         elif start_end == () and limitation:  # 不需要分页，但有限制要求
             tree = ET.parse(self.__sql_mapper)
             root = tree.getroot()
             res = filter(lambda x: x.get('name') == table, root.findall('table'))  # 找到table的sql
-            basic_sql = res[0].find('limited_search').text
-            sql = basic_sql[:basic_sql.find('limit')] + ';'
+            basic_sql = res[0].find(op).text
+            index = basic_sql.find('limit')
+            if index != -1:  # 找到限制条件
+                sql = basic_sql[:index] + ';'
+            else:
+                sql = basic_sql
         else:  # 仅仅为代码完整，以上已经枚举所有情况
             sql = ""
         cursor = self.conn.cursor()
@@ -147,12 +152,11 @@ class DBC(object):
             cursor.close()
 
     # 特殊查询
-    def special_search(self, table, op, start_end=(), data=None):
+    def special_search(self, table, op, data=None):
         """
         特殊需求查询
         :param table:　表名
         :param op:　操作
-        :param start_end: 限制条数
         :param data: 限制条件 {字典} | None
         :return:dict{'operation':DBOperation., 'exception': e, 'result':results | None}
         """
@@ -173,5 +177,3 @@ class DBC(object):
             return {'operation': DBOperation.Failure, 'exception': e, 'result': None}
         finally:
             cursor.close()
-
-

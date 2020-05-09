@@ -129,6 +129,21 @@ class BackendStub(object):
                 request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
                 response_deserializer=correspondence__pb2.ResponseStruct.FromString,
                 )
+        self.DeleteTheArrangement = channel.unary_unary(
+                '/Backend/DeleteTheArrangement',
+                request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
+                response_deserializer=correspondence__pb2.ResponseStruct.FromString,
+                )
+        self.GetAllStudents = channel.unary_unary(
+                '/Backend/GetAllStudents',
+                request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
+                response_deserializer=correspondence__pb2.ResponseStruct.FromString,
+                )
+        self.ArrangeTheStudentHere = channel.unary_unary(
+                '/Backend/ArrangeTheStudentHere',
+                request_serializer=correspondence__pb2.RequestStruct.SerializeToString,
+                response_deserializer=correspondence__pb2.ResponseStruct.FromString,
+                )
 
 
 class BackendServicer(object):
@@ -281,6 +296,24 @@ class BackendServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def DeleteTheArrangement(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetAllStudents(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ArrangeTheStudentHere(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_BackendServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -396,6 +429,21 @@ def add_BackendServicer_to_server(servicer, server):
             ),
             'GetTheSeatArrangement': grpc.unary_unary_rpc_method_handler(
                     servicer.GetTheSeatArrangement,
+                    request_deserializer=correspondence__pb2.RequestStruct.FromString,
+                    response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
+            ),
+            'DeleteTheArrangement': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteTheArrangement,
+                    request_deserializer=correspondence__pb2.RequestStruct.FromString,
+                    response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
+            ),
+            'GetAllStudents': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetAllStudents,
+                    request_deserializer=correspondence__pb2.RequestStruct.FromString,
+                    response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
+            ),
+            'ArrangeTheStudentHere': grpc.unary_unary_rpc_method_handler(
+                    servicer.ArrangeTheStudentHere,
                     request_deserializer=correspondence__pb2.RequestStruct.FromString,
                     response_serializer=correspondence__pb2.ResponseStruct.SerializeToString,
             ),
@@ -772,6 +820,54 @@ class Backend(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/Backend/GetTheSeatArrangement',
+            correspondence__pb2.RequestStruct.SerializeToString,
+            correspondence__pb2.ResponseStruct.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DeleteTheArrangement(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Backend/DeleteTheArrangement',
+            correspondence__pb2.RequestStruct.SerializeToString,
+            correspondence__pb2.ResponseStruct.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetAllStudents(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Backend/GetAllStudents',
+            correspondence__pb2.RequestStruct.SerializeToString,
+            correspondence__pb2.ResponseStruct.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ArrangeTheStudentHere(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Backend/ArrangeTheStudentHere',
             correspondence__pb2.RequestStruct.SerializeToString,
             correspondence__pb2.ResponseStruct.FromString,
             options, channel_credentials,

@@ -417,3 +417,49 @@ class CR(object):
         except Exception as e:  # 界面捕捉异常并弹出警告窗口
             print(e)
             raise Exception('请求失败')
+
+    def DeleteTheArrangementRequest(self, primary_key):
+        """
+        删除一个工位安排
+        :param primary_key:主键　可能是一组　用字典对应
+        :return:res['operation'] 即ClientRequest.Sucess | ...
+        """
+
+        try:
+            data = {'arrangement_id': primary_key[0]}
+            response = self.stub.DeleteTheArrangement(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            return res
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('请求失败')
+
+    def GetAllStudentsRequest(self, data):
+        """
+        获取所有学生名单
+        :param data:数据
+        :return:res['operation'] 即ClientRequest.Sucess | ...
+        """
+
+        try:
+            response = self.stub.GetAllStudents(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            return res
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('请求失败')
+
+    def ArrangeTheStudentHereRequest(self, data):
+        """
+        给学生安排工位
+        :param data:数据
+        :return:res['operation'] 即ClientRequest.Sucess | ...
+        """
+
+        try:
+            response = self.stub.ArrangeTheStudentHere(correspondence_pb2.RequestStruct(para=pickle.dumps(data)))
+            res = pickle.loads(response.result)
+            return res
+        except Exception as e:  # 界面捕捉异常并弹出警告窗口
+            print(e)
+            raise Exception('请求失败')

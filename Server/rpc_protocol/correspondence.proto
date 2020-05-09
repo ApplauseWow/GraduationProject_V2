@@ -40,6 +40,10 @@ service Backend {
     rpc GetSeatsDeployment(RequestStruct) returns (ResponseStruct) {} // 通用
     rpc GetSeatsArrangement(RequestStruct) returns (ResponseStruct) {} // 通用
     rpc GetTheSeatArrangement(RequestStruct) returns (ResponseStruct) {} // 通用
+    rpc DeleteTheArrangement(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc GetAllStudents(RequestStruct) returns (ResponseStruct) {} // 教师专用
+    rpc ArrangeTheStudentHere(RequestStruct) returns (ResponseStruct) {} // 教师专用
+
 }
 
 

@@ -1259,6 +1259,10 @@ class SeatDetail(QDialog):
         self.bt_arrangement.setObjectName("bt")
         self.bt_arrangement.setText(u"安排学生")
         self.d_user_name = QComboBox()
+        self.d_is_leader = QComboBox()
+        self.d_is_leader.addItem(u"非负责人", 0)
+        self.d_is_leader.addItem(u"负责人", 1)
+        self.d_is_leader.setCurrentIndex(0)
         self.quit = QPushButton()
         self.quit.setText("关闭窗口")
         self.quit.setObjectName("bt")
@@ -1266,7 +1270,8 @@ class SeatDetail(QDialog):
 
         # 布局
         self.lay.addWidget(self.l_user, 1, 1, 1, 1)
-        self.lay.addWidget(self.d_user_name, 1, 2, 1, 3)
+        self.lay.addWidget(self.d_user_name, 1, 2, 1, 2)
+        self.lay.addWidget(self.d_is_leader, 1, 4, 1, 1)
         self.lay.addWidget(self.bt_arrangement, 1, 5, 1, 1)
         self.lay.addLayout(self.user_table_layout, 3, 1, 4, 6)
         self.lay.addWidget(self.quit, 1, 6, 1, 1)
@@ -1472,6 +1477,16 @@ if __name__ == '__main__':
     import sys
 
     app = QApplication(sys.argv)
-    win = SeatDetail()
-    win.show()
+    # win = SeatDetail()
+    # win.show()
+    w = QWidget()
+    l = QGridLayout()
+    w.setLayout(l)
+    def test(num):
+        print(num)
+    bts= []
+    for i in range(6):
+        bt = QPushButton()
+        bt.clicked.connect(lambda :test(i))
+    w.show()
     sys.exit(app.exec_())

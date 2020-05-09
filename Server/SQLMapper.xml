@@ -4,6 +4,7 @@
         <delete>DELETE FROM `user_info` WHERE `user_id`=%(user_id)s;</delete>
         <update>UPDATE `user_info` SET `major`=%(major)s, `grade`=%(grade)s, `_class`=%(_class)s, `user_type`=%(user_type)s, `tel`=%(tel)s, `email`=%(email)s WHERE `user_id`=%(user_id)s;</update>
         <limited_search>SELECT * FROM `user_info` WHERE `user_id`=%(user_id)s;</limited_search>
+        <limited_all_user>SELECT * FROM `user_info` WHERE `user_type`=%(user_type)s;</limited_all_user>
         <limited_count>SELECT COUNT(*) FROM `user_info` WHERE `user_type`=%(user_type)s; </limited_count>
     </table>
     <table name="achievement_info">
@@ -84,6 +85,7 @@
     <table name="seat_arrangement">
         <insert>INSERT INTO `seat_arrangement` (`user_id`, `seat_id`, `is_leader`) VALUES (%(user_id)s, %(seat_id)s, %(is_leader)s);</insert>
         <delete>DELETE FROM `seat_arrangement` WHERE `arrangement_id`=%(arrangement_id)s;</delete>
+        <delete_all>DELETE FROM `seat_arrangement`;</delete_all>
     </table>
     <table name="seat_info">
         <insert>INSERT INTO `seat_info` (`row`, `col`) VALUES (%(row)s, %(col)s);</insert>
@@ -94,8 +96,9 @@
         <insert>INSERT INTO `self_task` (`pj_id`, `user_id`, `arrangement_date`, `is_done`, `task_title`, `description`) VALUES (%(pj_id)s, %(user_id)s, %(arrangement_date)s, %(is_done)s, %(task_title)s, %(description)s);</insert>
         <delete>DELETE FROM `self_task` WHERE `task_id`=%(task_id)s;</delete>
     </table>
-    <table name="join_search">
-        <get_all_seats_arrangement>SELECT arrangement_id, row, col, user_name, is_leader, a.seat_id, a.user_id  FROM seat_info JOIN seat_arrangement a ON seat_info.seat_id = a.seat_id JOIN user_info u ON a.user_id = u.user_id;</get_all_seats_arrangement>
-        <get_the_seat_arrangement>SELECT arrangement_id, row, col, user_name, is_leader, a.seat_id, a.user_id  FROM seat_info JOIN seat_arrangement a ON seat_info.seat_id = a.seat_id JOIN user_info u ON a.user_id = u.user_id WHERE a.seat_id = %(seat_id)s;</get_the_seat_arrangement>
+    <table name="joint_search">
+        <get_all_seats_arrangement>SELECT arrangement_id, row, col, user_name, a.is_leader, a.seat_id, a.user_id  FROM seat_info JOIN seat_arrangement a ON seat_info.seat_id = a.seat_id JOIN user_info u ON a.user_id = u.user_id;</get_all_seats_arrangement>
+        <get_the_seat_arrangement_pagenation>SELECT arrangement_id, row, col, user_name, a.is_leader, a.seat_id, a.user_id  FROM seat_info JOIN seat_arrangement a ON seat_info.seat_id = a.seat_id JOIN user_info u ON a.user_id = u.user_id WHERE a.seat_id = %(seat_id)s limit %(start)s, %(num)s;</get_the_seat_arrangement_pagenation>
+        <get_the_seat_arrangement>SELECT arrangement_id, row, col, user_name, a.is_leader, a.seat_id, a.user_id  FROM seat_info JOIN seat_arrangement a ON seat_info.seat_id = a.seat_id JOIN user_info u ON a.user_id = u.user_id WHERE a.seat_id = %(seat_id)s;</get_the_seat_arrangement>
     </table>
 </sql>

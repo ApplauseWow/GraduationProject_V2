@@ -22,7 +22,8 @@ class CallMethodImplement(object):
         'note': 'note_info',  # 公告
         'user': 'user_info',  # 用户
         'attendance': 'attendance_record',  # 考勤记录,
-        'seat': 'seat_info'  # 工位
+        'seat': 'seat_info',  # 工位
+        'seat_arrangement': 'seat_arrangement'
         # ...
     }
 
@@ -69,14 +70,21 @@ class CallMethodImplement(object):
         try:
             conn = DBC(client_ip=ip)
             table = self.__obj2table_mapper[data['obj']]
+            data.pop('obj')
+
             if data.has_key('num'):
                 start_end = (data['start'], data['num'])
                 data.pop('start')
                 data.pop('num')
             else:
                 start_end = ()
-            data.pop('obj')
-            res = conn.search_record(table=table, start_end=start_end, limitation=None if data == {} else data)
+
+            if data.has_key('op'):
+                op = data['op']
+                data.pop('op')
+                res = conn.search_record(table=table, start_end=start_end, limitation=None if data == {} else data, op=op)
+            else:
+                res = conn.search_record(table=table, start_end=start_end, limitation=None if data == {} else data)
             res['operation'] = self.__operation_mapper[res['operation']]
             return res
         except Exception as e:
@@ -189,16 +197,10 @@ class CallMethodImplement(object):
             conn = DBC(client_ip=ip)
             table = self.__obj2table_mapper[data['obj']]
             data.pop('obj')
-            if data.has_key('num'):
-                start_end = (data['start'], data['num'])
-                data.pop('start')
-                data.pop('num')
-            else:
-                start_end = ()
             data['record_type'] = AttendanceType.ClockIn.value
-            res_clock_in = conn.special_search(table=table, start_end=start_end, op='self_timestamp_search', data=data)
+            res_clock_in = conn.special_search(table=table, op='self_timestamp_search', data=data)
             data['record_type'] = AttendanceType.ClockOut.value
-            res_clock_out = conn.special_search(table=table, start_end=start_end, op='self_timestamp_search', data=data)
+            res_clock_out = conn.special_search(table=table, op='self_timestamp_search', data=data)
             if res_clock_in['operation'] == DBOperation.Failure or res_clock_out['operation'] == DBOperation.Failure:  # 其一操作失败
                 res = {'operation': ClientRequest.Failure, 'exception': Exception('fail to get the clock in/out timestamp'), 'result': None}
             else:  # 双双成功
@@ -228,13 +230,7 @@ class CallMethodImplement(object):
             conn = DBC(client_ip=ip)
             table = self.__obj2table_mapper[data['obj']]
             data.pop('obj')
-            if data.has_key('num'):
-                start_end = (data['start'], data['num'])
-                data.pop('start')
-                data.pop('num')
-            else:
-                start_end = ()
-            res = conn.special_search(table=table, start_end=start_end, op='self_week_search', data=data)
+            res = conn.special_search(table=table, op='self_week_search', data=data)
             res['operation'] = self.__operation_mapper[res['operation']]
             if res['operation'] == ClientRequest.Failure:  # 失败
                 return res
@@ -269,14 +265,8 @@ class CallMethodImplement(object):
 
         try:
             conn = DBC(client_ip=ip)
-            if data.has_key('num'):
-                start_end = (data['start'], data['num'])
-                data.pop('start')
-                data.pop('num')
-            else:
-                start_end = ()
-            res_clock_in = conn.special_search(table=self.__obj2table_mapper[data['obj']], start_end=start_end, op='all_each_time_count', data={'record_type': AttendanceType.ClockIn.value})
-            res_clock_out = conn.special_search(table=self.__obj2table_mapper[data['obj']], start_end=start_end, op='all_each_time_count', data={'record_type': AttendanceType.ClockIn.value})
+            res_clock_in = conn.special_search(table=self.__obj2table_mapper[data['obj']], op='all_each_time_count', data={'record_type': AttendanceType.ClockIn.value})
+            res_clock_out = conn.special_search(table=self.__obj2table_mapper[data['obj']], op='all_each_time_count', data={'record_type': AttendanceType.ClockIn.value})
             if res_clock_in['operation'] == DBOperation.Failure or res_clock_out['operation'] == DBOperation.Failure:  # 其一操作失败
                 res = {'operation': ClientRequest.Failure, 'exception': Exception('fail to get the clock in and out count each hour'), 'result': None}
             else:  # 双双成功
@@ -304,13 +294,7 @@ class CallMethodImplement(object):
 
         try:
             conn = DBC(client_ip=ip)
-            if data.has_key('num'):
-                start_end = (data['start'], data['num'])
-                data.pop('start')
-                data.pop('num')
-            else:
-                start_end = ()
-            res_today = conn.special_search(table=self.__obj2table_mapper[data['obj']], start_end=start_end, op='today_clockin_count')  # _type中是字典与sql_mapper中名称必须一致
+            res_today = conn.special_search(table=self.__obj2table_mapper[data['obj']], op='today_clockin_count')  # _type中是字典与sql_mapper中名称必须一致
             res_total = conn.count_record(self.__obj2table_mapper['user'], {'user_type': UserType.Student.value})
             if res_today['operation'] == DBOperation.Failure or res_total['operation'] == DBOperation.Failure:
                 res = {'operation': ClientRequest.Failure, 'exception': Exception('fail to get the clock in rate today'), 'result': None}
@@ -372,9 +356,14 @@ class CallMethodImplement(object):
             conn = DBC(client_ip=ip)
             table = self.__obj2table_mapper[data['obj']]
             data.pop('obj')
-
+            if data.has_key('op'):
+                op = data['op']
+                data.pop('op')
+                res = conn.search_record(table=table, start_end=(), limitation=data, op=op)
+            else:
+                res = conn.search_record(table=table, start_end=(), limitation=data)
             # 查询用户信息
-            res = conn.search_record(table=table, start_end=(), limitation=data)
+
             res['operation'] = self.__operation_mapper[res['operation']]
             # 匹配人脸，并注册人脸
             if res['operation'] == ClientRequest.Success:
@@ -421,6 +410,7 @@ class CallMethodImplement(object):
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
+    @log
     def DeploySeats(self, ip, data):
         """
         获取所有对象
@@ -433,9 +423,23 @@ class CallMethodImplement(object):
             conn = DBC(client_ip=ip)
             table = self.__obj2table_mapper[data['obj']]
             data.pop('obj')
+
+            # 清除之前的部署
+            res = conn.search_record(table=table)
+            res['operation'] = self.__operation_mapper[res['operation']]
+            if res['operation'] == ClientRequest.Success:  # 查询成功
+                if len(res['result']) == 0:
+                    pass
+                else:
+                    res = conn.modify_record(op='delete_all', table=table)
+                    if res['operation'] == ClientRequest.Failure:
+                        raise Exception("清除部署失败")
+            else:
+                raise Exception("读取部署失败")
+
             # 插入工位
-            for row in data['row']:
-                for col in data['col']:
+            for row in range(1, data['row']+1):
+                for col in range(1, data['col']+1):
                     res = conn.modify_record('insert', table, {'row': row, 'col': col})
                     res['operation'] = self.__operation_mapper[res['operation']]
                     if res['operation'] == ClientRequest.Failure:
@@ -447,10 +451,24 @@ class CallMethodImplement(object):
                             raise Exception("部署中断")
                     else:
                         pass
+
+            res = conn.search_record(table='seat_arrangement')
+            res['operation'] = self.__operation_mapper[res['operation']]
+            if res['operation'] == ClientRequest.Success:  # 查询成功
+                if len(res['result']) == 0:
+                    pass
+                else:
+                    res = conn.modify_record(op='delete_all', table='seat_arrangement')
+                    if res['operation'] == ClientRequest.Failure:
+                        raise Exception("清除安排失败")
+            else:
+                raise Exception("读取安排失败")
+
             return {'operation': ClientRequest.Success, 'exception': None, 'result': None}
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
+    @log
     def GetSeatsArrangement(self, ip, data):
         """
         获取所有工位安排
@@ -461,18 +479,13 @@ class CallMethodImplement(object):
 
         try:
             conn = DBC(client_ip=ip)
-            if data.has_key('num'):
-                start_end = (data['start'], data['num'])
-                data.pop('start')
-                data.pop('num')
-            else:
-                start_end = ()
-            res = conn.special_search(table='joint_search', start_end=start_end, op='get_all_seats_arrangement')
+            res = conn.special_search(table='joint_search', op='get_all_seats_arrangement')
             res['operation'] = self.__operation_mapper[res['operation']]
             return res
         except Exception as e:
             return {'operation': ClientRequest.Failure, 'exception': e, 'result': None}
 
+    @log
     def GetTheSeatArrangement(self, ip, data):
         """
        获取此工位安排
@@ -484,12 +497,10 @@ class CallMethodImplement(object):
         try:
             conn = DBC(client_ip=ip)
             if data.has_key('num'):
-                start_end = (data['start'], data['num'])
-                data.pop('start')
-                data.pop('num')
+                op = 'get_the_seat_arrangement_pagenation'
             else:
-                start_end = ()
-            res = conn.special_search(table='joint_search', op='get_the_seat_arrangement', start_end=start_end, data=data)
+                op = 'get_the_seat_arrangement'
+            res = conn.special_search(table='joint_search', op=op, data=data)
             res['operation'] = self.__operation_mapper[res['operation']]
             return res
         except Exception as e:
