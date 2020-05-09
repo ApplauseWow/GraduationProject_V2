@@ -134,7 +134,7 @@ class Ui_id_info_win(object):
     def retranslateUi(self, id_info_win):
         _translate = QtCore.QCoreApplication.translate
         id_info_win.setWindowTitle(_translate("id_info_win", "Dialog"))
-        self.b_login.setText(_translate("id_info_win", "进入系统"))
+        self.b_login.setText(_translate("id_info_win", "关闭"))
         self.b_wrong.setText(_translate("id_info_win", "有误重试"))
         self.b_in.setText(_translate("id_info_win", "上岗"))
         self.l_name.setText(_translate("id_info_win", "姓名"))
@@ -144,4 +144,3 @@ class Ui_id_info_win(object):
         self.l_id.setText(_translate("id_info_win", "工号/学号"))
         self.l_type.setText(_translate("id_info_win", "用户类型"))
         self.b_off.setText(_translate("id_info_win", "离岗"))
-

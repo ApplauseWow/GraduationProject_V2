@@ -8,7 +8,7 @@ series: [{
     data: data,
     label:{
         formatter: function(param) {
-            return '今日出勤率:\n' + clock_in + "/" + total + "\n" + param.value * 100 + "%";
+            return '今日出勤率:\n' + clock_in + "/" + total + "\n" + (param.value).toFixed(3) * 100 + "%";
         }
     }
 }]

@@ -616,7 +616,6 @@ class SysHome(MainWindow):
                 self.show_attendance.user_name.setText(res['user_name'])
                 self.show_attendance.user_type.setText("学生")
                 self.show_attendance.user_id.setText(str(res['user_id']))
-                self.show_attendance.b_login.hide()
                 self.show_attendance.exec_()
 
             def showAlert(words_type):
@@ -826,6 +825,7 @@ class SysHome(MainWindow):
             self.b_in.clicked.connect(lambda: self.clock_in_or_out(AttendanceType.ClockIn.value))
             self.b_off.clicked.connect(lambda: self.clock_in_or_out(AttendanceType.ClockOut.value))
             self.b_wrong.clicked.connect(self.tryToRegisterAgain)
+            self.b_login.clicked.connect(self.close)
 
         def clock_in_or_out(self, _type):
             """
@@ -1517,6 +1517,9 @@ class Management(ManagementWindow):
                     self.isTeacher(None)
                     if UserType(int(data['user_type'])) == UserType.Student:
                         self.initCharts(int(data['user_id']))
+                    else:
+                        self.timestamp.hide()
+                        self.hour_everyday.hide()
 
                 self.d_user_type.activated.connect(self.isTeacher)
                 self.bt_insert.clicked.connect(self.CreateNewUser)
@@ -1694,7 +1697,7 @@ class Management(ManagementWindow):
                           self.d_class, self.d_tel, self.d_email] if UserType(self.d_user_type.currentData()) == UserType.Student else [self.d_user_id, self.d_tel, self.d_email]
                 for sz in checks:
                     szText = sz.text()
-                    if sz is self.d_major or sz is self.d_email:
+                    if sz is self.d_major or sz is self.d_email or sz is self.d_user_name:
                         szText = szText.strip()  # 去掉头尾空格
                     else:
                         pattern = re.compile('^[0-9]+$')

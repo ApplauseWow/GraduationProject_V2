@@ -1,6 +1,6 @@
 <sql>
     <table name="user_info">
-        <insert>INSERT INTO `user_info` (`user_id`, `major`, `grade`, `_class`, `user_type`, `tel`, `email`) VALUES (%(user_id)s, %(major)s, %(grade)s, %(_class)s, %(user_type)s, %(tel)s, %(email)s);</insert>
+        <insert>INSERT INTO `user_info` (`user_id`, `user_name`, `major`, `grade`, `_class`, `user_type`, `tel`, `email`) VALUES (%(user_id)s, %(user_name)s, %(major)s, %(grade)s, %(_class)s, %(user_type)s, %(tel)s, %(email)s);</insert>
         <delete>DELETE FROM `user_info` WHERE `user_id`=%(user_id)s;</delete>
         <update>UPDATE `user_info` SET `major`=%(major)s, `grade`=%(grade)s, `_class`=%(_class)s, `user_type`=%(user_type)s, `tel`=%(tel)s, `email`=%(email)s WHERE `user_id`=%(user_id)s;</update>
         <limited_search>SELECT * FROM `user_info` WHERE `user_id`=%(user_id)s;</limited_search>
