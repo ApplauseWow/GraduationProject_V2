@@ -39,9 +39,9 @@ __BASIC_COLUMN_DICT = {  # 按页面分类的基本字段列表
 
     'seat_arrangement': [
                 {'name': 'arrangement_id', 'is_hidden': True, 'is_pk': True},
-                {'name': u'姓名', 'is_hidden': False, 'is_pk': False},
                 {'name': u'行', 'is_hidden': False, 'is_pk': False},
                 {'name': u'列', 'is_hidden': False, 'is_pk': False},
+                {'name': u'姓名', 'is_hidden': False, 'is_pk': False},
                 {'name': u'负责人', 'is_hidden': False, 'is_pk': False, 'convert': lambda x: u"是" if SeatMember(x) == SeatMember.Leader else u"否"},
                 {'name': 'seat_id', 'is_hidden': True, 'is_pk': False},
                 {'name': 'user_id', 'is_hidden': True, 'is_pk': False}
